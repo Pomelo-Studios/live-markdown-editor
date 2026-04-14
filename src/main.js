@@ -2,7 +2,9 @@
 import { initTheme } from './theme.js'
 import { initEditor } from './editor.js'
 import { renderPreview, renderPreviewDebounced } from './preview.js'
+import { initResizer } from './resizer.js'
 
 initTheme()
+initResizer()
 const initialContent = initEditor((markdown) => renderPreviewDebounced(markdown))
 renderPreview(initialContent)
