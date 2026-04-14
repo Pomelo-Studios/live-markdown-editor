@@ -1,7 +1,7 @@
 {
-  "name": "feat-implementation",
+  "name": "live-markdown-editor",
   "version": "1.0.0",
-  "description": "",
+  "description": "Free, open-source, browser-based live markdown editor",
   "main": "index.js",
   "directories": {
     "doc": "docs"
@@ -14,7 +14,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "vite": "^8.0.8",
     "vitest": "^4.1.4"
