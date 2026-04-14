@@ -1,0 +1,207 @@
+/* styles/main.css */
+
+/* ── CSS Custom Properties ── */
+:root {
+  /* Heading sizes */
+  --h1-size: 36px;
+  --h2-size: 28px;
+  --h3-size: 22px;
+  --h4-size: 18px;
+
+  /* Heading colors */
+  --h1-color: #111111;
+  --h2-color: #222222;
+  --h3-color: #333333;
+  --h4-color: #444444;
+
+  /* Body */
+  --body-size: 16px;
+  --body-color: #333333;
+
+  /* Preview margins */
+  --preview-margin-top: 24px;
+  --preview-margin-right: 32px;
+  --preview-margin-bottom: 24px;
+  --preview-margin-left: 32px;
+
+  /* Code block */
+  --code-bg: #f4f4f4;
+  --code-grid: none;
+
+  /* Layout */
+  --sidebar-width: 220px;
+  --sidebar-collapsed-width: 36px;
+  --resizer-width: 6px;
+  --toolbar-height: 44px;
+  --footer-height: 36px;
+  --mobile-tabs-height: 52px;
+
+  /* Light theme */
+  --bg-app: #f0f0f0;
+  --bg-editor: #1e1e1e;
+  --bg-preview: #ffffff;
+  --bg-toolbar: #ffffff;
+  --bg-sidebar: #1e1e2e;
+  --bg-resizer: #dddddd;
+  --color-editor-text: #d4d4d4;
+  --color-toolbar-text: #333333;
+  --color-sidebar-text: #cccccc;
+  --color-accent: #6d28d9;
+  --color-footer-bg: #f8f8f8;
+  --color-footer-text: #666666;
+  --border-color: #e0e0e0;
+}
+
+[data-theme="dark"] {
+  --bg-app: #0d0d14;
+  --bg-editor: #12121c;
+  --bg-preview: #1a1a28;
+  --bg-toolbar: #1e1e2e;
+  --bg-sidebar: #16162a;
+  --bg-resizer: #2a2a3e;
+  --color-editor-text: #cdd6f4;
+  --color-toolbar-text: #e0e0e0;
+  --color-sidebar-text: #cccccc;
+  --color-accent: #9b7fff;
+  --color-footer-bg: #12121c;
+  --color-footer-text: #888888;
+  --border-color: #2a2a3e;
+  --h1-color: #f0f0f0;
+  --h2-color: #e0e0e0;
+  --h3-color: #d0d0d0;
+  --h4-color: #c0c0c0;
+  --body-color: #cccccc;
+  --code-bg: #2a2a3e;
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; font-family: system-ui, sans-serif; }
+
+body {
+  background: var(--bg-app);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ── App shell ── */
+#app {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - var(--footer-height));
+}
+
+/* ── Main (right of sidebar) ── */
+#main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Toolbar ── */
+#toolbar {
+  height: var(--toolbar-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--bg-toolbar);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.toolbar__brand { font-weight: 600; font-size: 14px; color: var(--color-toolbar-text); }
+.toolbar__actions { display: flex; gap: 8px; align-items: center; }
+.toolbar__actions button {
+  padding: 5px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-toolbar-text);
+  cursor: pointer;
+  font-size: 13px;
+}
+.toolbar__actions button:hover { background: var(--color-accent); color: #fff; border-color: transparent; }
+
+/* ── Split pane ── */
+#split {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+#editor-pane {
+  flex: 1 1 50%;
+  min-width: 20%;
+  overflow: hidden;
+  display: flex;
+}
+
+#editor {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  resize: none;
+  border: none;
+  outline: none;
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 14px;
+  line-height: 1.7;
+  background: var(--bg-editor);
+  color: var(--color-editor-text);
+  tab-size: 2;
+}
+
+/* ── Resizer ── */
+#resizer {
+  width: var(--resizer-width);
+  background: var(--bg-resizer);
+  cursor: col-resize;
+  flex-shrink: 0;
+  position: relative;
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+}
+
+#resizer::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 40px;
+  background: var(--border-color);
+  border-radius: 2px;
+}
+
+#resizer:hover, #resizer.resizing { background: var(--color-accent); }
+
+/* ── Preview pane ── */
+#preview-pane {
+  flex: 1 1 50%;
+  min-width: 20%;
+  overflow-y: auto;
+  background: var(--bg-preview);
+}
+
+/* ── Footer ── */
+#footer {
+  height: var(--footer-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: var(--color-footer-bg);
+  border-top: 1px solid var(--border-color);
+  font-size: 12px;
+  color: var(--color-footer-text);
+  flex-shrink: 0;
+}
+
+#footer a { color: var(--color-accent); text-decoration: none; }
+#footer a:hover { text-decoration: underline; }
