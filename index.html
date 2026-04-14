@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Markdown Editor</title>
+  <link rel="stylesheet" href="/styles/main.css" />
+  <link rel="stylesheet" href="/styles/preview.css" />
+  <link rel="stylesheet" href="/styles/sidebar.css" />
+  <link rel="stylesheet" href="/styles/mobile.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- Left sidebar: style panel -->
+    <aside id="sidebar" class="sidebar sidebar--open">
+      <div class="sidebar__header">
+        <span class="sidebar__title">Style</span>
+        <button id="sidebar-toggle" class="sidebar__toggle" aria-label="Toggle sidebar">◀</button>
+      </div>
+      <div class="sidebar__content" id="sidebar-content">
+
+        <section class="panel-section">
+          <h3 class="panel-section__title">Headings</h3>
+          <label>H1 size <input type="number" data-var="--h1-size" value="36" min="12" max="72" />px</label>
+          <label>H1 color <input type="color" data-var="--h1-color" value="#111111" /></label>
+          <label>H2 size <input type="number" data-var="--h2-size" value="28" min="12" max="72" />px</label>
+          <label>H2 color <input type="color" data-var="--h2-color" value="#222222" /></label>
+          <label>H3 size <input type="number" data-var="--h3-size" value="22" min="12" max="72" />px</label>
+          <label>H3 color <input type="color" data-var="--h3-color" value="#333333" /></label>
+          <label>H4 size <input type="number" data-var="--h4-size" value="18" min="12" max="72" />px</label>
+          <label>H4 color <input type="color" data-var="--h4-color" value="#444444" /></label>
+        </section>
+
+        <section class="panel-section">
+          <h3 class="panel-section__title">Body</h3>
+          <label>Size <input type="number" data-var="--body-size" value="16" min="10" max="32" />px</label>
+          <label>Color <input type="color" data-var="--body-color" value="#333333" /></label>
+        </section>
+
+        <section class="panel-section">
+          <h3 class="panel-section__title">Margins</h3>
+          <label>Top <input type="number" data-var="--preview-margin-top" value="24" min="0" max="120" />px</label>
+          <label>Right <input type="number" data-var="--preview-margin-right" value="32" min="0" max="120" />px</label>
+          <label>Bottom <input type="number" data-var="--preview-margin-bottom" value="24" min="0" max="120" />px</label>
+          <label>Left <input type="number" data-var="--preview-margin-left" value="32" min="0" max="120" />px</label>
+        </section>
+
+        <section class="panel-section">
+          <h3 class="panel-section__title">Code Block</h3>
+          <label>Background <input type="color" data-var="--code-bg" value="#f4f4f4" /></label>
+          <label class="label--row">
+            <input type="checkbox" id="code-grid-toggle" />
+            Indent grid
+          </label>
+        </section>
+
+      </div>
+    </aside>
+
+    <!-- Main content area -->
+    <main id="main">
+
+      <!-- Toolbar -->
+      <header id="toolbar">
+        <span class="toolbar__brand">Live Markdown Editor</span>
+        <div class="toolbar__actions">
+          <button id="pdf-export-btn">PDF Export</button>
+          <button id="theme-toggle" aria-label="Toggle theme">🌙</button>
+        </div>
+      </header>
+
+      <!-- Editor / Preview split -->
+      <div id="split">
+        <div id="editor-pane">
+          <textarea id="editor" spellcheck="false" placeholder="Write markdown here..."></textarea>
+        </div>
+        <div id="resizer"></div>
+        <div id="preview-pane">
+          <div id="preview"></div>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Footer -->
+  <footer id="footer">
+    <span>Powered by <strong>Pomelo Studios</strong></span>
+    <a href="https://github.com/Pomelo-Studios/live-markdown-editor" target="_blank" rel="noopener">GitHub ↗</a>
+  </footer>
+
+  <!-- Mobile bottom tab bar -->
+  <nav id="mobile-tabs" class="mobile-tabs" aria-label="Mobile navigation">
+    <button class="mobile-tab mobile-tab--active" data-pane="editor">✏ Düzenle</button>
+    <button class="mobile-tab" data-pane="preview">👁 Önizle</button>
+    <button class="mobile-tab" data-pane="style">⚙ Stil</button>
+  </nav>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
