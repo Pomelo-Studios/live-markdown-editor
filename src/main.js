@@ -1,2 +1,4 @@
 // src/main.js
-console.log('Live Markdown Editor — booting')
+import { initTheme } from './theme.js'
+
+initTheme()
