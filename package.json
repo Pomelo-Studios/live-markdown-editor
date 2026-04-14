@@ -1,0 +1,28 @@
+{
+  "name": "live-markdown-editor",
+  "version": "1.0.0",
+  "description": "Free, open-source, browser-based live markdown editor",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "jsdom": "^29.0.2",
+    "vite": "^8.0.8",
+    "vitest": "^4.1.4"
+  },
+  "dependencies": {
+    "highlight.js": "^11.11.1",
+    "html2pdf.js": "^0.14.0",
+    "marked": "^18.0.0"
+  }
+}
