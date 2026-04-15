@@ -1,90 +1,91 @@
 // src/formatToolbar.js
+import { debounce } from './utils/debounce.js'
 
-let _onInput = null
-let _savedStart = 0
-let _savedEnd = 0
+// ── Undo / Redo stack ──────────────────────────────────────────────────────────
 
-// ── Build toolbar DOM ──────────────────────────────────────────────────────────
+const MAX_UNDO = 15
+let _undo = []   // [{v, s, e}]
+let _redo = []
 
-const toolbar = document.createElement('div')
-toolbar.className = 'format-toolbar'
-toolbar.innerHTML = `
-  <button class="fmt-btn fmt-btn--bold"   data-action="bold"       title="Bold"><b>B</b></button>
-  <button class="fmt-btn fmt-btn--italic" data-action="italic"     title="Italic"><i>I</i></button>
-  <button class="fmt-btn fmt-btn--strike" data-action="strike"     title="Strikethrough">S</button>
-  <button class="fmt-btn fmt-btn--mono"   data-action="inlinecode" title="Inline code">&lt;/&gt;</button>
-  <div class="fmt-sep"></div>
-  <button class="fmt-btn" data-action="h1" title="Heading 1">H1</button>
-  <button class="fmt-btn" data-action="h2" title="Heading 2">H2</button>
-  <button class="fmt-btn" data-action="h3" title="Heading 3">H3</button>
-  <button class="fmt-btn" data-action="h4" title="Heading 4">H4</button>
-  <button class="fmt-btn" data-action="h5" title="Heading 5">H5</button>
-  <button class="fmt-btn" data-action="h6" title="Heading 6">H6</button>
-  <div class="fmt-sep"></div>
-  <button class="fmt-btn" data-action="blockquote" title="Blockquote">❝</button>
-  <button class="fmt-btn" data-action="bullet"     title="Bullet list">•</button>
-  <button class="fmt-btn" data-action="checklist"  title="Checklist">☑</button>
-  <button class="fmt-btn" data-action="codeblock"  title="Code block">{ }</button>
-  <div class="fmt-sep"></div>
-  <button class="fmt-btn" data-action="link"  title="Insert link">⛓</button>
-  <button class="fmt-btn" data-action="table" title="Insert table">⊞</button>
-  <div class="fmt-link-group">
-    <input type="text" class="fmt-url-input" placeholder="https://..." />
-    <button class="fmt-url-ok"     title="Apply">✓</button>
-    <button class="fmt-url-cancel" title="Cancel">✕</button>
-  </div>
-`
-document.body.appendChild(toolbar)
-
-const linkGroup  = toolbar.querySelector('.fmt-link-group')
-const urlInput   = toolbar.querySelector('.fmt-url-input')
-const urlOk      = toolbar.querySelector('.fmt-url-ok')
-const urlCancel  = toolbar.querySelector('.fmt-url-cancel')
-
-// ── Show / Hide ────────────────────────────────────────────────────────────────
-
-function showToolbar(anchorX, anchorY) {
-  toolbar.style.display = 'flex'
-  // Let browser lay it out so we can read dimensions
-  const tw = toolbar.offsetWidth
-  const th = toolbar.offsetHeight
-
-  const margin = 8
-  const vw = window.innerWidth
-  let x = anchorX - tw / 2
-  x = Math.max(margin, Math.min(x, vw - tw - margin))
-
-  const spaceAbove = anchorY - th - 14
-  const below = spaceAbove < margin
-  let y = below ? anchorY + 14 : anchorY - th - 14
-
-  toolbar.classList.toggle('fmt-below', below)
-  toolbar.style.left = x + 'px'
-  toolbar.style.top  = y + 'px'
-  // Position arrow relative to toolbar left edge
-  toolbar.style.setProperty('--fmt-arrow-x', (anchorX - x) + 'px')
+function snapshotState(textarea) {
+  return { v: textarea.value, s: textarea.selectionStart, e: textarea.selectionEnd }
 }
 
-function hideToolbar() {
-  toolbar.style.display = 'none'
-  toolbar.classList.remove('fmt-below')
-  closeLinkInput()
+function pushUndo(textarea) {
+  const state = snapshotState(textarea)
+  const last = _undo[_undo.length - 1]
+  if (last && last.v === state.v) return
+  _undo.push(state)
+  _redo = []
+  if (_undo.length > MAX_UNDO) _undo.shift()
 }
 
-// ── Link input panel ───────────────────────────────────────────────────────────
-
-function openLinkInput() {
-  linkGroup.classList.add('active')
-  urlInput.value = ''
-  urlInput.focus()
+function doUndo(textarea) {
+  if (_undo.length <= 1) return
+  const cur = _undo.pop()
+  _redo.push(cur)
+  const prev = _undo[_undo.length - 1]
+  applyStateRaw(textarea, prev)
 }
 
-function closeLinkInput() {
-  linkGroup.classList.remove('active')
-  urlInput.value = ''
+function doRedo(textarea) {
+  const next = _redo.pop()
+  if (!next) return
+  _undo.push(next)
+  applyStateRaw(textarea, next)
 }
 
-// ── Text manipulation helpers ──────────────────────────────────────────────────
+function applyStateRaw(textarea, state) {
+  textarea.value = state.v
+  textarea.selectionStart = state.s
+  textarea.selectionEnd   = state.e
+  textarea.dispatchEvent(new Event('input', { bubbles: true }))
+  textarea.focus()
+}
+
+// ── Button config ──────────────────────────────────────────────────────────────
+
+const BUTTONS = [
+  { action: 'bold',       label: '<b>B</b>',  title: 'Bold',          cls: 'fmt-btn--bold'   },
+  { action: 'italic',     label: '<i>I</i>',  title: 'Italic',        cls: 'fmt-btn--italic' },
+  { action: 'strike',     label: 'S',          title: 'Strikethrough', cls: 'fmt-btn--strike' },
+  { action: 'inlinecode', label: '&lt;/&gt;', title: 'Inline code',   cls: 'fmt-btn--mono'   },
+  null, // separator
+  { action: 'h1', label: 'H1', title: 'Heading 1' },
+  { action: 'h2', label: 'H2', title: 'Heading 2' },
+  { action: 'h3', label: 'H3', title: 'Heading 3' },
+  { action: 'h4', label: 'H4', title: 'Heading 4' },
+  { action: 'h5', label: 'H5', title: 'Heading 5' },
+  { action: 'h6', label: 'H6', title: 'Heading 6' },
+  null, // separator
+  { action: 'blockquote', label: '❝',   title: 'Blockquote'  },
+  { action: 'bullet',     label: '•',   title: 'Bullet list' },
+  { action: 'checklist',  label: '☑',   title: 'Checklist'   },
+  { action: 'codeblock',  label: '{ }', title: 'Code block'  },
+  null, // separator
+  { action: 'link',  label: '⛓', title: 'Insert link'  },
+  { action: 'table', label: '⊞', title: 'Insert table' },
+]
+
+const TOC_BUTTON = { action: 'toc', label: '☰', title: 'Insert Table of Contents' }
+
+function buildToolbarHTML(withToc) {
+  const parts = (withToc ? [...BUTTONS, null, TOC_BUTTON] : BUTTONS).map((b) =>
+    b === null
+      ? '<div class="fmt-sep"></div>'
+      : `<button class="fmt-btn${b.cls ? ' ' + b.cls : ''}" data-action="${b.action}" title="${b.title}">${b.label}</button>`
+  )
+  parts.push(`
+    <div class="fmt-link-group">
+      <input type="text" class="fmt-url-input" placeholder="https://..." />
+      <button class="fmt-url-ok" title="Apply">✓</button>
+      <button class="fmt-url-cancel" title="Cancel">✕</button>
+    </div>
+  `)
+  return parts.join('')
+}
+
+// ── Text manipulation ──────────────────────────────────────────────────────────
 
 function applyChange(textarea, newValue, newStart, newEnd) {
   textarea.value = newValue
@@ -94,110 +95,153 @@ function applyChange(textarea, newValue, newStart, newEnd) {
   textarea.focus()
 }
 
-/** Wrap selected text with a prefix and suffix. Toggles off if already wrapped. */
 function wrapInline(textarea, pre, suf) {
-  const { selectionStart: s, selectionEnd: e, value } = textarea
-  const sel = value.slice(s, e)
+  const { selectionStart: s, selectionEnd: e, value: v } = textarea
+  const sel = v.slice(s, e)
   if (sel.startsWith(pre) && sel.endsWith(suf)) {
-    // Toggle off
     const inner = sel.slice(pre.length, sel.length - suf.length)
-    applyChange(textarea, value.slice(0, s) + inner + value.slice(e), s, s + inner.length)
+    applyChange(textarea, v.slice(0, s) + inner + v.slice(e), s, s + inner.length)
   } else {
-    const replacement = pre + sel + suf
-    applyChange(textarea, value.slice(0, s) + replacement + value.slice(e), s + pre.length, s + pre.length + sel.length)
+    const rep = pre + sel + suf
+    applyChange(textarea, v.slice(0, s) + rep + v.slice(e), s + pre.length, s + pre.length + sel.length)
   }
 }
 
-/** Prefix each selected line with a string. Toggles off if all lines already have it. */
 function prefixLines(textarea, prefix) {
-  const { selectionStart: s, selectionEnd: e, value } = textarea
-  const before = value.slice(0, s)
-  const after  = value.slice(e)
-  const lineStart = before.lastIndexOf('\n') + 1
-  const chunk = value.slice(lineStart, e)
+  const { selectionStart: s, selectionEnd: e, value: v } = textarea
+  const lineStart = v.lastIndexOf('\n', s - 1) + 1
+  const chunk = v.slice(lineStart, e)
   const lines = chunk.split('\n')
   const allPrefixed = lines.every((l) => l.startsWith(prefix))
-  const newLines = allPrefixed
-    ? lines.map((l) => l.slice(prefix.length))
-    : lines.map((l) => prefix + l)
+  const newLines = allPrefixed ? lines.map((l) => l.slice(prefix.length)) : lines.map((l) => prefix + l)
   const newChunk = newLines.join('\n')
   const delta = newChunk.length - chunk.length
-  applyChange(
-    textarea,
-    value.slice(0, lineStart) + newChunk + after,
-    s + (allPrefixed ? -Math.min(prefix.length, s - lineStart) : prefix.length),
-    e + delta
-  )
+  const newS = allPrefixed ? Math.max(lineStart, s - prefix.length) : s + prefix.length
+  applyChange(textarea, v.slice(0, lineStart) + newChunk + v.slice(e), newS, e + delta)
 }
 
-/** Replace the selected lines with a heading (or remove heading if same level). */
 function applyHeading(textarea, level) {
-  const { selectionStart: s, selectionEnd: e, value } = textarea
-  const before    = value.slice(0, s)
-  const lineStart = before.lastIndexOf('\n') + 1
-  const lineEnd   = value.indexOf('\n', e) === -1 ? value.length : value.indexOf('\n', e)
-  const line      = value.slice(lineStart, lineEnd)
-
-  const prefix  = '#'.repeat(level) + ' '
+  const { selectionStart: s, selectionEnd: e, value: v } = textarea
+  const lineStart = v.lastIndexOf('\n', s - 1) + 1
+  const lineEnd = v.indexOf('\n', e) === -1 ? v.length : v.indexOf('\n', e)
+  const line = v.slice(lineStart, lineEnd)
+  const prefix = '#'.repeat(level) + ' '
   const stripped = line.replace(/^#{1,6} /, '')
   const sameLevel = line.startsWith(prefix)
-  const newLine  = sameLevel ? stripped : prefix + stripped
-  const newValue = value.slice(0, lineStart) + newLine + value.slice(lineEnd)
-  const offset   = newLine.length - line.length
-  applyChange(textarea, newValue, s + offset, e + offset)
+  const newLine = sameLevel ? stripped : prefix + stripped
+  const delta = newLine.length - line.length
+  applyChange(textarea, v.slice(0, lineStart) + newLine + v.slice(lineEnd), s + delta, e + delta)
 }
 
-/** Wrap selected text (or current line) in a fenced code block. */
 function applyCodeBlock(textarea) {
-  const { selectionStart: s, selectionEnd: e, value } = textarea
-  const sel = value.slice(s, e).trim()
-  // Detect if already a code block
+  const { selectionStart: s, selectionEnd: e, value: v } = textarea
+  const sel = v.slice(s, e).trim()
   if (sel.startsWith('```') && sel.endsWith('```')) {
     const inner = sel.slice(3, sel.lastIndexOf('```')).replace(/^\n/, '').replace(/\n$/, '')
-    applyChange(textarea, value.slice(0, s) + inner + value.slice(e), s, s + inner.length)
+    applyChange(textarea, v.slice(0, s) + inner + v.slice(e), s, s + inner.length)
     return
   }
-  const block = '```\n' + (sel || 'code here') + '\n```'
-  applyChange(textarea, value.slice(0, s) + block + value.slice(e), s + 4, s + 4 + (sel || 'code here').length)
+  const placeholder = sel || 'code here'
+  const block = '```\n' + placeholder + '\n```'
+  applyChange(textarea, v.slice(0, s) + block + v.slice(e), s + 4, s + 4 + placeholder.length)
 }
 
-/** Insert a table. Selected text → first column header. */
 function applyTable(textarea) {
-  const { selectionStart: s, selectionEnd: e, value } = textarea
-  const sel = value.slice(s, e).trim() || 'Column 1'
-  const table = [
+  const { selectionStart: s, selectionEnd: e, value: v } = textarea
+  const sel = v.slice(s, e).trim() || 'Column 1'
+  const tbl = [
     `| ${sel} | Column 2 | Column 3 |`,
     `|----------|----------|----------|`,
     `| Cell     | Cell     | Cell     |`,
     `| Cell     | Cell     | Cell     |`,
   ].join('\n')
-  // Ensure blank line before and after
-  const before = value.slice(0, s)
-  const needBefore = before.length > 0 && !before.endsWith('\n\n')
-  const prefix = needBefore ? (before.endsWith('\n') ? '\n' : '\n\n') : ''
-  const insertion = prefix + table + '\n\n'
-  applyChange(
-    textarea,
-    value.slice(0, s) + insertion + value.slice(e),
-    s + insertion.length,
-    s + insertion.length
-  )
+  const before = v.slice(0, s)
+  const pad = before.length > 0 && !before.endsWith('\n\n')
+    ? (before.endsWith('\n') ? '\n' : '\n\n')
+    : ''
+  const insertion = pad + tbl + '\n\n'
+  applyChange(textarea, v.slice(0, s) + insertion + v.slice(e), s + insertion.length, s + insertion.length)
 }
 
-/** Apply a link: [selected text](url) */
 function applyLink(textarea, url) {
-  const { selectionStart: s, selectionEnd: e, value } = textarea
-  const sel = value.slice(s, e) || 'link text'
-  const replacement = `[${sel}](${url})`
-  applyChange(textarea, value.slice(0, s) + replacement + value.slice(e), s, s + replacement.length)
+  const { selectionStart: s, selectionEnd: e, value: v } = textarea
+  const sel = v.slice(s, e) || 'link text'
+  const rep = `[${sel}](${url})`
+  applyChange(textarea, v.slice(0, s) + rep + v.slice(e), s, s + rep.length)
+}
+
+function slugify(text) {
+  return text
+    .replace(/<[^>]+>/g, '')
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+}
+
+function applyToc(textarea) {
+  const { value: v, selectionStart: s } = textarea
+  const headings = []
+  for (const line of v.split('\n')) {
+    const m = line.match(/^(#{1,6})\s+(.+)/)
+    if (m) headings.push({ level: m[1].length, text: m[2].trim() })
+  }
+  if (!headings.length) return
+  const minLevel = Math.min(...headings.map((h) => h.level))
+  const tocLines = ['## Table of Contents', '']
+  for (const h of headings) {
+    const indent = '  '.repeat(h.level - minLevel)
+    const slug = slugify(h.text)
+    tocLines.push(`${indent}- [${h.text}](#${slug})`)
+  }
+  tocLines.push('', '')
+  const toc = tocLines.join('\n')
+  // Insert at current cursor, ensuring blank line before
+  const before = v.slice(0, s)
+  const pad = before.length > 0 && !before.endsWith('\n\n')
+    ? (before.endsWith('\n') ? '\n' : '\n\n')
+    : ''
+  const insertion = pad + toc
+  applyChange(textarea, v.slice(0, s) + insertion + v.slice(s), s + insertion.length, s + insertion.length)
+}
+
+// ── Link input state ───────────────────────────────────────────────────────────
+
+function openLinkInput(container, textarea) {
+  const lg = container.querySelector('.fmt-link-group')
+  const inp = container.querySelector('.fmt-url-input')
+  lg.classList.add('active')
+  inp.value = ''
+  // Save selection to apply later
+  container._linkSel = { s: textarea.selectionStart, e: textarea.selectionEnd }
+  inp.focus()
+}
+
+function closeLinkInput(container) {
+  const lg = container.querySelector('.fmt-link-group')
+  if (lg) lg.classList.remove('active')
+}
+
+function confirmLink(container, textarea) {
+  const inp = container.querySelector('.fmt-url-input')
+  const url = inp ? inp.value.trim() : ''
+  if (!url) { closeLinkInput(container); return }
+  const { s, e } = container._linkSel || { s: 0, e: 0 }
+  textarea.selectionStart = s
+  textarea.selectionEnd   = e
+  applyLink(textarea, url)
+  closeLinkInput(container)
 }
 
 // ── Action dispatcher ──────────────────────────────────────────────────────────
 
-function handleAction(action, textarea) {
-  // Restore selection (it may have been lost when clicking toolbar)
-  textarea.selectionStart = _savedStart
-  textarea.selectionEnd   = _savedEnd
+function handleAction(action, textarea, container) {
+  if (action === 'link') {
+    openLinkInput(container, textarea)
+    return
+  }
+  // Push undo state before every format action
+  pushUndo(textarea)
 
   switch (action) {
     case 'bold':       wrapInline(textarea, '**', '**'); break
@@ -214,87 +258,155 @@ function handleAction(action, textarea) {
     case 'bullet':     prefixLines(textarea, '- '); break
     case 'checklist':  prefixLines(textarea, '- [ ] '); break
     case 'codeblock':  applyCodeBlock(textarea); break
-    case 'table':      applyTable(textarea); hideToolbar(); return
-    case 'link':
-      openLinkInput()
-      return // Don't hide toolbar
+    case 'table':      applyTable(textarea); break
+    case 'toc':        applyToc(textarea); break
     default: break
   }
-  hideToolbar()
+}
+
+// ── Wire a toolbar container ───────────────────────────────────────────────────
+
+function wireToolbar(container, textarea, { hideOnAction = false } = {}) {
+  container.addEventListener('mousedown', (e) => {
+    e.preventDefault() // Keep textarea focus + selection
+
+    const btn = e.target.closest('[data-action]')
+    if (btn) {
+      handleAction(btn.dataset.action, textarea, container)
+      if (hideOnAction && btn.dataset.action !== 'link') {
+        hideFloating()
+      }
+      return
+    }
+
+    const okBtn = e.target.closest('.fmt-url-ok')
+    if (okBtn) {
+      pushUndo(textarea)
+      confirmLink(container, textarea)
+      if (hideOnAction) hideFloating()
+      return
+    }
+
+    const cancelBtn = e.target.closest('.fmt-url-cancel')
+    if (cancelBtn) {
+      closeLinkInput(container)
+      if (hideOnAction) hideFloating()
+    }
+  })
+
+  // Enter / Escape in URL input
+  container.querySelector('.fmt-url-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      pushUndo(textarea)
+      confirmLink(container, textarea)
+      if (hideOnAction) hideFloating()
+    }
+    if (e.key === 'Escape') {
+      closeLinkInput(container)
+      if (hideOnAction) hideFloating()
+    }
+  })
+}
+
+// ── Floating toolbar ───────────────────────────────────────────────────────────
+
+const floatingEl = document.createElement('div')
+floatingEl.className = 'format-toolbar'
+floatingEl.innerHTML = buildToolbarHTML(false)
+document.body.appendChild(floatingEl)
+
+function showFloating(anchorX, anchorY) {
+  floatingEl.style.display = 'flex'
+  const tw = floatingEl.offsetWidth
+  const th = floatingEl.offsetHeight
+  const margin = 8
+  const vw = window.innerWidth
+  let x = anchorX - tw / 2
+  x = Math.max(margin, Math.min(x, vw - tw - margin))
+  const below = anchorY - th - 14 < margin
+  const y = below ? anchorY + 14 : anchorY - th - 14
+  floatingEl.classList.toggle('fmt-below', below)
+  floatingEl.style.left = x + 'px'
+  floatingEl.style.top  = y + 'px'
+  floatingEl.style.setProperty('--fmt-arrow-x', (anchorX - x) + 'px')
+}
+
+function hideFloating() {
+  floatingEl.style.display = 'none'
+  floatingEl.classList.remove('fmt-below')
+  closeLinkInput(floatingEl)
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 
-export function initFormatToolbar(onInput) {
-  _onInput = onInput
+export function initFormatToolbar() {
   const textarea = document.getElementById('editor')
 
-  // Show toolbar on mouse selection
+  // Seed undo stack with initial content
+  _undo = [snapshotState(textarea)]
+
+  // ── Fixed toolbar ──
+  const fixedEl = document.getElementById('fmt-toolbar-fixed')
+  fixedEl.innerHTML = buildToolbarHTML(true)
+  wireToolbar(fixedEl, textarea, { hideOnAction: false })
+
+  // ── Floating toolbar ──
+  wireToolbar(floatingEl, textarea, { hideOnAction: true })
+
+  // Show floating on mouse selection
   textarea.addEventListener('mouseup', (e) => {
-    const { selectionStart: s, selectionEnd: e2 } = textarea
-    if (s === e2) { hideToolbar(); return }
-    _savedStart = s
-    _savedEnd   = e2
-    showToolbar(e.clientX, e.clientY)
+    if (textarea.selectionStart === textarea.selectionEnd) { hideFloating(); return }
+    showFloating(e.clientX, e.clientY)
   })
 
-  // Show toolbar on keyboard selection
+  // Show floating on keyboard selection
   textarea.addEventListener('keyup', (e) => {
-    const { selectionStart: s, selectionEnd: e2 } = textarea
-    if (s === e2) { hideToolbar(); return }
-    if (!['Shift', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key) && !e.shiftKey) return
-    _savedStart = s
-    _savedEnd   = e2
-    // Position near caret — use textarea bounding rect as fallback
+    if (!e.shiftKey && e.key !== 'End' && e.key !== 'Home') return
+    if (textarea.selectionStart === textarea.selectionEnd) { hideFloating(); return }
     const rect = textarea.getBoundingClientRect()
-    showToolbar(rect.left + rect.width / 2, rect.top + 40)
+    showFloating(rect.left + rect.width / 2, rect.top + 36)
   })
 
-  // Hide on click outside toolbar + textarea
+  // Hide floating on outside click
   document.addEventListener('mousedown', (e) => {
-    if (!toolbar.contains(e.target) && e.target !== textarea) {
-      hideToolbar()
+    if (!floatingEl.contains(e.target) && e.target !== textarea) {
+      hideFloating()
     }
   })
 
-  // Toolbar button clicks
-  toolbar.addEventListener('mousedown', (e) => {
-    e.preventDefault() // Prevent textarea losing focus/selection
-    const btn = e.target.closest('[data-action]')
-    if (!btn) return
-    handleAction(btn.dataset.action, textarea)
-  })
-
-  // Link URL confirm
-  urlOk.addEventListener('mousedown', (e) => {
-    e.preventDefault()
-    const url = urlInput.value.trim()
-    if (!url) return
-    textarea.selectionStart = _savedStart
-    textarea.selectionEnd   = _savedEnd
-    applyLink(textarea, url)
-    hideToolbar()
-  })
-
-  urlInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      const url = urlInput.value.trim()
-      if (!url) return
-      textarea.selectionStart = _savedStart
-      textarea.selectionEnd   = _savedEnd
-      applyLink(textarea, url)
-      hideToolbar()
-    }
-    if (e.key === 'Escape') {
-      closeLinkInput()
-      hideToolbar()
+  // Also hide floating when selection collapses
+  textarea.addEventListener('keydown', (e) => {
+    if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Escape'].includes(e.key) && !e.shiftKey) {
+      hideFloating()
     }
   })
 
-  // Link cancel
-  urlCancel.addEventListener('mousedown', (e) => {
-    e.preventDefault()
-    closeLinkInput()
-    hideToolbar()
+  // ── Undo / Redo keyboard shortcuts ──
+  textarea.addEventListener('keydown', (e) => {
+    const ctrl = e.ctrlKey || e.metaKey
+    if (ctrl && e.key === 'z' && !e.shiftKey) {
+      e.preventDefault()
+      doUndo(textarea)
+    }
+    if (ctrl && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+      e.preventDefault()
+      doRedo(textarea)
+    }
+  })
+
+  // Debounced snapshot on typing (creates undo checkpoint every ~800ms while typing)
+  const saveTyping = debounce(() => pushUndo(textarea), 800)
+  textarea.addEventListener('input', saveTyping)
+
+  // ── Download MD ──
+  document.getElementById('md-download-btn')?.addEventListener('click', () => {
+    const blob = new Blob([textarea.value], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'document.md'
+    a.click()
+    URL.revokeObjectURL(url)
   })
 }
