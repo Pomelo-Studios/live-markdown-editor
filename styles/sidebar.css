@@ -57,6 +57,10 @@
   padding: 0;
 }
 
+.sidebar--collapsed .sidebar__toggle {
+  margin-left: -6px;
+}
+
 /* ── Toggle button ── */
 .sidebar__toggle {
   background: color-mix(in srgb, var(--color-sidebar-header-text) 12%, transparent);
@@ -214,7 +218,7 @@
   padding: 5px 8px;
   border: 1px solid var(--border-color);
   border-radius: 5px;
-  background: var(--bg-preview);
+  background: var(--bg-editor);
   color: var(--color-sidebar-text);
   font-size: 12px;
   font-weight: 500;
@@ -242,7 +246,7 @@
   border-radius: 5px;
   cursor: pointer;
   padding: 2px;
-  background: var(--bg-preview);
+  background: var(--bg-editor);
   flex-shrink: 0;
   transition: border-color 0.15s;
 }
@@ -256,7 +260,7 @@
   padding: 4px 7px;
   border: 1px solid var(--border-color);
   border-radius: 5px;
-  background: var(--bg-preview);
+  background: var(--bg-editor);
   color: var(--color-sidebar-text);
   font-size: 11px;
   font-family: 'Fira Code', monospace;

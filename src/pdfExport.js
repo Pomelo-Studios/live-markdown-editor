@@ -184,6 +184,8 @@ async function startExport() {
       mm('--preview-margin-left',   32),
     ]
 
+    const bgColor = cs.getPropertyValue('--bg-preview').trim() || '#ffffff'
+
     const opt = {
       margin: margins,
       filename: getPdfFilename(),
@@ -192,6 +194,7 @@ async function startExport() {
         scale: 2,
         useCORS: true,
         logging: false,
+        backgroundColor: bgColor,
         onclone: (clonedDoc) => prepareClone(clonedDoc),
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
