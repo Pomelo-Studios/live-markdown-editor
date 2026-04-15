@@ -35,10 +35,18 @@ function buildDocDefinition(markdown, styles) {
     pageSize:    'A4',
     pageMargins: styles.pageMargins,
     defaultStyle: {
-      font:     'Roboto',
-      fontSize: styles.body.fontSize,
-      color:    styles.body.color,
+      font:       'Roboto',
+      fontSize:   styles.body.fontSize,
+      color:      styles.body.color,
       lineHeight: 1.4,
+    },
+    fonts: {
+      Roboto: {
+        normal:      'Roboto-Regular.ttf',
+        bold:        'Roboto-Medium.ttf',
+        italics:     'Roboto-Italic.ttf',
+        bolditalics: 'Roboto-MediumItalic.ttf',
+      },
     },
   }
 

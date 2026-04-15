@@ -20,7 +20,7 @@ export function renderInline(tokens, styles) {
 
       case 'codespan':
         return {
-          text:       token.text,
+          text:       `\u00A0${token.text}\u00A0`,
           fontSize:   styles.inlineCode ? (styles.body.fontSize * 0.85) : 10,
           background: styles.inlineCode.background,
           color:      styles.inlineCode.color,
@@ -39,7 +39,7 @@ export function renderInline(tokens, styles) {
       }
 
       case 'highlight':
-        return { text: token.text, background: '#fef08a', color: '#713f12' }
+        return { text: `\u00A0${token.text}\u00A0`, background: '#fef08a', color: '#713f12' }
 
       case 'softbreak':
       case 'br':

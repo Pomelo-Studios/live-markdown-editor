@@ -116,8 +116,8 @@
   color: var(--color-toolbar-text);
 }
 #fmt-toolbar-fixed .fmt-btn:hover {
-  background: var(--fmt-btn-hover-bg);
-  color: var(--color-accent, #6d28d9);
+  background: color-mix(in srgb, var(--color-toolbar-text) 12%, transparent);
+  color: var(--color-toolbar-text);
 }
 
 .fmt-btn--italic { font-style: italic; }
