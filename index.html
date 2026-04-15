@@ -277,6 +277,7 @@
         <span class="toolbar__brand">Live Markdown Editor</span>
         <div class="toolbar__actions">
           <button id="pdf-export-btn">PDF Export</button>
+          <button id="md-download-btn">⬇ MD</button>
           <button id="theme-toggle" aria-label="Toggle theme">🌙</button>
         </div>
       </header>
@@ -284,6 +285,7 @@
       <!-- Editor / Preview split -->
       <div id="split">
         <div id="editor-pane">
+          <div id="fmt-toolbar-fixed"></div>
           <textarea id="editor" spellcheck="false" placeholder="Write markdown here..."></textarea>
         </div>
         <div id="resizer" title="Drag to resize"></div>

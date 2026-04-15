@@ -200,6 +200,7 @@ body {
   min-width: 20%;
   overflow: hidden;
   display: flex;
+  flex-direction: column;
   border-right: 1px solid var(--border-color);
 }
 
