@@ -31,10 +31,11 @@ describe('renderInline', () => {
     expect(out[0].decoration).toBe('lineThrough')
   })
 
-  test('codespan uses monospace font', () => {
+  test('codespan uses inline code styles', () => {
     const out = renderInline([{ type: 'codespan', text: 'x++' }], S)
-    expect(out[0].font).toBe('Courier')
     expect(out[0].text).toBe('x++')
+    expect(out[0].background).toBe(S.inlineCode.background)
+    expect(out[0].color).toBe(S.inlineCode.color)
   })
 
   test('external link sets link href', () => {

@@ -21,7 +21,6 @@ export function renderInline(tokens, styles) {
       case 'codespan':
         return {
           text:       token.text,
-          font:       'Courier',
           fontSize:   styles.inlineCode ? (styles.body.fontSize * 0.85) : 10,
           background: styles.inlineCode.background,
           color:      styles.inlineCode.color,
