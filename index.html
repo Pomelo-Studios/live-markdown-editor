@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="/styles/preview.css" />
   <link rel="stylesheet" href="/styles/sidebar.css" />
   <link rel="stylesheet" href="/styles/mobile.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-theme" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" id="hljs-theme" />
 </head>
 <body>
   <div id="app">
@@ -16,43 +16,211 @@
     <!-- Left sidebar: style panel -->
     <aside id="sidebar" class="sidebar sidebar--open">
       <div class="sidebar__header">
-        <span class="sidebar__title">Style</span>
+        <span class="sidebar__title">Style Panel</span>
         <button id="sidebar-toggle" class="sidebar__toggle" aria-label="Toggle sidebar">◀</button>
       </div>
+
       <div class="sidebar__content" id="sidebar-content">
+        <button class="sidebar__reset-all" id="reset-all-btn">↺ Reset all to defaults</button>
 
+        <!-- Headings -->
         <section class="panel-section">
-          <h3 class="panel-section__title">Headings</h3>
-          <label>H1 size <input type="number" data-var="--h1-size" value="36" min="12" max="72" />px</label>
-          <label>H1 color <input type="color" data-var="--h1-color" value="#111111" /></label>
-          <label>H2 size <input type="number" data-var="--h2-size" value="28" min="12" max="72" />px</label>
-          <label>H2 color <input type="color" data-var="--h2-color" value="#222222" /></label>
-          <label>H3 size <input type="number" data-var="--h3-size" value="22" min="12" max="72" />px</label>
-          <label>H3 color <input type="color" data-var="--h3-color" value="#333333" /></label>
-          <label>H4 size <input type="number" data-var="--h4-size" value="18" min="12" max="72" />px</label>
-          <label>H4 color <input type="color" data-var="--h4-color" value="#444444" /></label>
+          <div class="panel-section__header">
+            <h3 class="panel-section__title">Headings</h3>
+            <button class="panel-section__reset" data-reset-section="headings" title="Reset headings">↺</button>
+          </div>
+          <label>
+            <span class="label-text">H1 size</span>
+            <input type="number" data-var="--h1-size" data-default="36" value="36" min="12" max="72" />
+            <span class="unit-label">px</span>
+          </label>
+          <label>
+            <span class="label-text">H1 color</span>
+            <div class="color-row">
+              <input type="color" data-var="--h1-color" data-default="#111111" value="#111111" />
+              <input type="text" class="hex-input" data-hex-for="--h1-color" value="#111111" maxlength="7" />
+            </div>
+          </label>
+          <label>
+            <span class="label-text">H2 size</span>
+            <input type="number" data-var="--h2-size" data-default="28" value="28" min="12" max="72" />
+            <span class="unit-label">px</span>
+          </label>
+          <label>
+            <span class="label-text">H2 color</span>
+            <div class="color-row">
+              <input type="color" data-var="--h2-color" data-default="#222222" value="#222222" />
+              <input type="text" class="hex-input" data-hex-for="--h2-color" value="#222222" maxlength="7" />
+            </div>
+          </label>
+          <label>
+            <span class="label-text">H3 size</span>
+            <input type="number" data-var="--h3-size" data-default="22" value="22" min="12" max="72" />
+            <span class="unit-label">px</span>
+          </label>
+          <label>
+            <span class="label-text">H3 color</span>
+            <div class="color-row">
+              <input type="color" data-var="--h3-color" data-default="#333333" value="#333333" />
+              <input type="text" class="hex-input" data-hex-for="--h3-color" value="#333333" maxlength="7" />
+            </div>
+          </label>
+          <label>
+            <span class="label-text">H4 size</span>
+            <input type="number" data-var="--h4-size" data-default="18" value="18" min="12" max="72" />
+            <span class="unit-label">px</span>
+          </label>
+          <label>
+            <span class="label-text">H4 color</span>
+            <div class="color-row">
+              <input type="color" data-var="--h4-color" data-default="#444444" value="#444444" />
+              <input type="text" class="hex-input" data-hex-for="--h4-color" value="#444444" maxlength="7" />
+            </div>
+          </label>
         </section>
 
+        <hr class="panel-divider" />
+
+        <!-- Body -->
         <section class="panel-section">
-          <h3 class="panel-section__title">Body</h3>
-          <label>Size <input type="number" data-var="--body-size" value="16" min="10" max="32" />px</label>
-          <label>Color <input type="color" data-var="--body-color" value="#333333" /></label>
+          <div class="panel-section__header">
+            <h3 class="panel-section__title">Body</h3>
+            <button class="panel-section__reset" data-reset-section="body" title="Reset body">↺</button>
+          </div>
+          <label>
+            <span class="label-text">Size</span>
+            <input type="number" data-var="--body-size" data-default="16" value="16" min="10" max="32" />
+            <span class="unit-label">px</span>
+          </label>
+          <label>
+            <span class="label-text">Color</span>
+            <div class="color-row">
+              <input type="color" data-var="--body-color" data-default="#333333" value="#333333" />
+              <input type="text" class="hex-input" data-hex-for="--body-color" value="#333333" maxlength="7" />
+            </div>
+          </label>
         </section>
 
+        <hr class="panel-divider" />
+
+        <!-- Links -->
         <section class="panel-section">
-          <h3 class="panel-section__title">Margins</h3>
-          <label>Top <input type="number" data-var="--preview-margin-top" value="24" min="0" max="120" />px</label>
-          <label>Right <input type="number" data-var="--preview-margin-right" value="32" min="0" max="120" />px</label>
-          <label>Bottom <input type="number" data-var="--preview-margin-bottom" value="24" min="0" max="120" />px</label>
-          <label>Left <input type="number" data-var="--preview-margin-left" value="32" min="0" max="120" />px</label>
+          <div class="panel-section__header">
+            <h3 class="panel-section__title">Links</h3>
+            <button class="panel-section__reset" data-reset-section="links" title="Reset links">↺</button>
+          </div>
+          <label>
+            <span class="label-text">Color</span>
+            <div class="color-row">
+              <input type="color" data-var="--link-color" data-default="#6d28d9" value="#6d28d9" />
+              <input type="text" class="hex-input" data-hex-for="--link-color" value="#6d28d9" maxlength="7" />
+            </div>
+          </label>
         </section>
 
+        <hr class="panel-divider" />
+
+        <!-- Blockquote -->
         <section class="panel-section">
-          <h3 class="panel-section__title">Code Block</h3>
-          <label>Background <input type="color" data-var="--code-bg" value="#f4f4f4" /></label>
+          <div class="panel-section__header">
+            <h3 class="panel-section__title">Blockquote</h3>
+            <button class="panel-section__reset" data-reset-section="blockquote" title="Reset blockquote">↺</button>
+          </div>
+          <label>
+            <span class="label-text">Border</span>
+            <div class="color-row">
+              <input type="color" data-var="--blockquote-border" data-default="#6d28d9" value="#6d28d9" />
+              <input type="text" class="hex-input" data-hex-for="--blockquote-border" value="#6d28d9" maxlength="7" />
+            </div>
+          </label>
+          <label>
+            <span class="label-text">Background</span>
+            <div class="color-row">
+              <input type="color" data-var="--blockquote-bg" data-default="#f5f0ff" value="#f5f0ff" />
+              <input type="text" class="hex-input" data-hex-for="--blockquote-bg" value="#f5f0ff" maxlength="7" />
+            </div>
+          </label>
+        </section>
+
+        <hr class="panel-divider" />
+
+        <!-- Code -->
+        <section class="panel-section">
+          <div class="panel-section__header">
+            <h3 class="panel-section__title">Code Block</h3>
+            <button class="panel-section__reset" data-reset-section="code" title="Reset code">↺</button>
+          </div>
+          <label>
+            <span class="label-text">Background</span>
+            <div class="color-row">
+              <input type="color" data-var="--code-bg" data-default="#f4f4f4" value="#f4f4f4" />
+              <input type="text" class="hex-input" data-hex-for="--code-bg" value="#f4f4f4" maxlength="7" />
+            </div>
+          </label>
+          <label>
+            <span class="label-text">Text color</span>
+            <div class="color-row">
+              <input type="color" data-var="--code-color" data-default="#333333" value="#333333" />
+              <input type="text" class="hex-input" data-hex-for="--code-color" value="#333333" maxlength="7" />
+            </div>
+          </label>
           <label class="label--row">
             <input type="checkbox" id="code-grid-toggle" />
-            Indent grid
+            <span class="label-text">Indent grid</span>
+          </label>
+        </section>
+
+        <hr class="panel-divider" />
+
+        <!-- Inline Code -->
+        <section class="panel-section">
+          <div class="panel-section__header">
+            <h3 class="panel-section__title">Inline Code</h3>
+            <button class="panel-section__reset" data-reset-section="inline-code" title="Reset inline code">↺</button>
+          </div>
+          <label>
+            <span class="label-text">Background</span>
+            <div class="color-row">
+              <input type="color" data-var="--inline-code-bg" data-default="#eeeeee" value="#eeeeee" />
+              <input type="text" class="hex-input" data-hex-for="--inline-code-bg" value="#eeeeee" maxlength="7" />
+            </div>
+          </label>
+          <label>
+            <span class="label-text">Text color</span>
+            <div class="color-row">
+              <input type="color" data-var="--inline-code-color" data-default="#d63e6b" value="#d63e6b" />
+              <input type="text" class="hex-input" data-hex-for="--inline-code-color" value="#d63e6b" maxlength="7" />
+            </div>
+          </label>
+        </section>
+
+        <hr class="panel-divider" />
+
+        <!-- Margins -->
+        <section class="panel-section">
+          <div class="panel-section__header">
+            <h3 class="panel-section__title">Margins</h3>
+            <button class="panel-section__reset" data-reset-section="margins" title="Reset margins">↺</button>
+          </div>
+          <label>
+            <span class="label-text">Top</span>
+            <input type="number" data-var="--preview-margin-top" data-default="24" value="24" min="0" max="120" />
+            <span class="unit-label">px</span>
+          </label>
+          <label>
+            <span class="label-text">Right</span>
+            <input type="number" data-var="--preview-margin-right" data-default="32" value="32" min="0" max="120" />
+            <span class="unit-label">px</span>
+          </label>
+          <label>
+            <span class="label-text">Bottom</span>
+            <input type="number" data-var="--preview-margin-bottom" data-default="24" value="24" min="0" max="120" />
+            <span class="unit-label">px</span>
+          </label>
+          <label>
+            <span class="label-text">Left</span>
+            <input type="number" data-var="--preview-margin-left" data-default="32" value="32" min="0" max="120" />
+            <span class="unit-label">px</span>
           </label>
         </section>
 
@@ -76,7 +244,7 @@
         <div id="editor-pane">
           <textarea id="editor" spellcheck="false" placeholder="Write markdown here..."></textarea>
         </div>
-        <div id="resizer"></div>
+        <div id="resizer" title="Drag to resize"></div>
         <div id="preview-pane">
           <div id="preview"></div>
         </div>
