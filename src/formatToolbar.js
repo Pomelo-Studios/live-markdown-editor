@@ -46,10 +46,11 @@ function applyStateRaw(textarea, state) {
 // ── Button config ──────────────────────────────────────────────────────────────
 
 const BUTTONS = [
-  { action: 'bold',       label: '<b>B</b>',  title: 'Bold',          cls: 'fmt-btn--bold'   },
-  { action: 'italic',     label: '<i>I</i>',  title: 'Italic',        cls: 'fmt-btn--italic' },
-  { action: 'strike',     label: 'S',          title: 'Strikethrough', cls: 'fmt-btn--strike' },
-  { action: 'inlinecode', label: '&lt;/&gt;', title: 'Inline code',   cls: 'fmt-btn--mono'   },
+  { action: 'bold',       label: '<b>B</b>',                      title: 'Bold',          cls: 'fmt-btn--bold'      },
+  { action: 'italic',     label: '<i>I</i>',                      title: 'Italic',        cls: 'fmt-btn--italic'    },
+  { action: 'strike',     label: 'S',                              title: 'Strikethrough', cls: 'fmt-btn--strike'    },
+  { action: 'highlight',  label: '<mark class="fmt-hl">H</mark>', title: 'Highlight',     cls: 'fmt-btn--highlight' },
+  { action: 'inlinecode', label: '&lt;/&gt;',                    title: 'Inline code',   cls: 'fmt-btn--mono'      },
   null, // separator
   { action: 'h1', label: 'H1', title: 'Heading 1' },
   { action: 'h2', label: 'H2', title: 'Heading 2' },
@@ -247,6 +248,7 @@ function handleAction(action, textarea, container) {
     case 'bold':       wrapInline(textarea, '**', '**'); break
     case 'italic':     wrapInline(textarea, '_', '_'); break
     case 'strike':     wrapInline(textarea, '~~', '~~'); break
+    case 'highlight':  wrapInline(textarea, '==', '=='); break
     case 'inlinecode': wrapInline(textarea, '`', '`'); break
     case 'h1': applyHeading(textarea, 1); break
     case 'h2': applyHeading(textarea, 2); break
@@ -401,11 +403,15 @@ export function initFormatToolbar() {
 
   // ── Download MD ──
   document.getElementById('md-download-btn')?.addEventListener('click', () => {
+    const match = textarea.value.match(/^#\s+(.+)/m)
+    const base = match
+      ? match[1].replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-').toLowerCase().slice(0, 60)
+      : 'document'
     const blob = new Blob([textarea.value], { type: 'text/markdown' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'document.md'
+    a.download = base + '.md'
     a.click()
     URL.revokeObjectURL(url)
   })

@@ -23,6 +23,11 @@
 
       <div class="sidebar__content" id="sidebar-content">
         <button class="sidebar__reset-all" id="reset-all-btn"><span class="sidebar__reset-icon">↺</span> Reset all to defaults</button>
+        <div class="sidebar__io-row">
+          <button class="sidebar__io-btn" id="export-settings-btn">⬆ Export</button>
+          <button class="sidebar__io-btn" id="import-settings-btn">⬇ Import</button>
+          <input type="file" id="import-settings-file" accept=".json" style="display:none" />
+        </div>
 
         <!-- Headings -->
         <section class="panel-section">
@@ -238,6 +243,25 @@
 
         <hr class="panel-divider" />
 
+        <hr class="panel-divider" />
+
+        <!-- Page Background -->
+        <section class="panel-section">
+          <div class="panel-section__header">
+            <h3 class="panel-section__title">Page Background</h3>
+            <button class="panel-section__reset" data-reset-section="background" title="Reset background">↺</button>
+          </div>
+          <label>
+            <span class="label-text">Background</span>
+            <div class="color-row">
+              <input type="color" data-var="--bg-preview" data-default="#ffffff" value="#ffffff" />
+              <input type="text" class="hex-input" data-hex-for="--bg-preview" value="#ffffff" maxlength="7" />
+            </div>
+          </label>
+        </section>
+
+        <hr class="panel-divider" />
+
         <!-- Margins -->
         <section class="panel-section">
           <div class="panel-section__header">
@@ -306,9 +330,9 @@
 
   <!-- Mobile bottom tab bar -->
   <nav id="mobile-tabs" class="mobile-tabs" aria-label="Mobile navigation">
-    <button class="mobile-tab mobile-tab--active" data-pane="editor">✏ Düzenle</button>
-    <button class="mobile-tab" data-pane="preview">👁 Önizle</button>
-    <button class="mobile-tab" data-pane="style">⚙ Stil</button>
+    <button class="mobile-tab mobile-tab--active" data-pane="editor">✏ Edit</button>
+    <button class="mobile-tab" data-pane="preview">👁 Preview</button>
+    <button class="mobile-tab" data-pane="style">⚙ Style</button>
   </nav>
 
   <script type="module" src="/src/main.js"></script>

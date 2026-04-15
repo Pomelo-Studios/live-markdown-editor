@@ -169,3 +169,17 @@
 }
 
 .preview-goto-btn:hover { opacity: 1; }
+
+/* ── Highlight ==text== ── */
+#preview mark {
+  background: #fef08a;
+  color: #713f12;
+  padding: 1px 3px;
+  border-radius: 3px;
+  font-style: normal;
+}
+
+[data-theme="dark"] #preview mark {
+  background: rgba(254, 240, 138, 0.18);
+  color: #fde68a;
+}

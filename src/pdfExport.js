@@ -21,40 +21,54 @@ function getHtml2Pdf() {
   })
 }
 
+// ── Derive a filename from the first H1 in the document ──────────────────────
+function getPdfFilename() {
+  const editor = document.getElementById('editor')
+  const match = editor?.value.match(/^#\s+(.+)/m)
+  if (!match) return 'document.pdf'
+  return match[1]
+    .replace(/[^\w\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .toLowerCase()
+    .slice(0, 60) + '.pdf'
+}
+
 // ── Prepare html2canvas's internal clone before capture ──────────────────────
 function prepareClone(clonedDoc) {
-  // 1. Force light theme so PDFs are always readable
-  clonedDoc.documentElement.setAttribute('data-theme', 'light')
+  const cs = getComputedStyle(document.documentElement)
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light'
   const root = clonedDoc.documentElement
-  const lightVars = {
-    '--body-color':          '#333333',
-    '--h1-color':            '#111111',
-    '--h2-color':            '#222222',
-    '--h3-color':            '#333333',
-    '--h4-color':            '#444444',
-    '--h5-color':            '#555555',
-    '--h6-color':            '#666666',
-    '--code-bg':             '#f4f4f4',
-    '--code-color':          '#333333',
-    '--inline-code-bg':      '#eeeeee',
-    '--inline-code-color':   '#d63e6b',
-    '--border-color':        '#e1e4e8',
-    '--blockquote-border':   '#6d28d9',
-    '--blockquote-bg':       'transparent',
-    '--link-color':          '#6d28d9',
-    '--checkbox-color':      '#6d28d9',
-    '--bg-preview':          '#ffffff',
-  }
-  Object.entries(lightVars).forEach(([k, v]) => root.style.setProperty(k, v))
 
-  // 2. Strip preview padding — html2pdf margin covers per-page spacing
+  // 1. Apply current theme so default CSS vars cascade correctly
+  root.setAttribute('data-theme', currentTheme)
+
+  // 2. Copy all current computed CSS var values (includes style panel customizations)
+  const varsToCopy = [
+    '--bg-preview',
+    '--body-color', '--body-size',
+    '--h1-size', '--h1-color', '--h2-size', '--h2-color',
+    '--h3-size', '--h3-color', '--h4-size', '--h4-color',
+    '--h5-size', '--h5-color', '--h6-size', '--h6-color',
+    '--code-bg', '--code-color', '--inline-code-bg', '--inline-code-color',
+    '--border-color', '--blockquote-border', '--blockquote-bg',
+    '--link-color', '--checkbox-color',
+    '--preview-margin-top', '--preview-margin-right',
+    '--preview-margin-bottom', '--preview-margin-left',
+  ]
+  varsToCopy.forEach((v) => {
+    const val = cs.getPropertyValue(v).trim()
+    if (val) root.style.setProperty(v, val)
+  })
+
+  // 3. Strip preview padding — html2pdf margin covers per-page spacing
   const clonedPreview = clonedDoc.getElementById('preview')
   if (clonedPreview) {
     clonedPreview.style.padding = '0'
-    clonedPreview.style.background = '#ffffff'
+    clonedPreview.style.background = cs.getPropertyValue('--bg-preview').trim() || '#ffffff'
   }
 
-  // 3. Inject page-break rules so headings/code/table never split across pages
+  // 4. Page-break rules, word-spacing fix for headings
   const style = clonedDoc.createElement('style')
   style.textContent = `
     h1,h2,h3,h4,h5,h6,pre,blockquote,table,figure {
@@ -64,6 +78,8 @@ function prepareClone(clonedDoc) {
     h1,h2,h3,h4,h5,h6 {
       page-break-after: avoid !important;
       break-after: avoid !important;
+      word-spacing: normal !important;
+      letter-spacing: normal !important;
     }
     p, li {
       page-break-inside: avoid !important;
@@ -75,19 +91,20 @@ function prepareClone(clonedDoc) {
   `
   clonedDoc.head.appendChild(style)
 
-  // 4. Replace custom CSS checkboxes with plain spans — appearance:none + calc()
+  // 5. Replace custom CSS checkboxes with plain spans — appearance:none + calc()
   //    vars on ::after pseudo-elements crash html2canvas
+  const cbColor = cs.getPropertyValue('--checkbox-color').trim() || '#6d28d9'
   clonedDoc.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
     const checked = cb.checked
     const box = clonedDoc.createElement('span')
     box.style.cssText = [
       'display:inline-block',
       'width:12px', 'height:12px',
-      `border:2px solid ${checked ? '#6d28d9' : '#888888'}`,
+      `border:2px solid ${checked ? cbColor : '#888888'}`,
       'border-radius:3px',
       'vertical-align:middle',
       'margin-right:6px',
-      `background:${checked ? '#6d28d9' : 'transparent'}`,
+      `background:${checked ? cbColor : 'transparent'}`,
       'position:relative',
     ].join(';')
     if (checked) {
@@ -105,20 +122,20 @@ function prepareClone(clonedDoc) {
     cb.parentNode.replaceChild(box, cb)
   })
 
-  // 5. Remove hover artefacts
+  // 6. Remove hover artefacts
   clonedDoc.querySelectorAll('.preview-goto-btn').forEach((b) => b.remove())
   clonedDoc.querySelectorAll('.preview-line-hl').forEach((el) => el.classList.remove('preview-line-hl'))
 }
 
 // ── PDF mode UI ───────────────────────────────────────────────────────────────
 function enterPdfMode() {
-  exportBtn.textContent = '⬇ İndir'
+  exportBtn.textContent = '⬇ Download'
   exportBtn.removeEventListener('click', startExport)
   exportBtn.addEventListener('click', downloadPdf, { once: true })
 
   const closeBtn = document.createElement('button')
   closeBtn.id = 'pdf-close-btn'
-  closeBtn.textContent = '✕ Kapat'
+  closeBtn.textContent = '✕ Close'
   exportBtn.insertAdjacentElement('afterend', closeBtn)
   closeBtn.addEventListener('click', exitPdfMode, { once: true })
 
@@ -143,7 +160,7 @@ function exitPdfMode() {
 async function downloadPdf() {
   const link = document.createElement('a')
   link.href = pdfBlobUrl
-  link.download = 'document.pdf'
+  link.download = getPdfFilename()
   link.click()
 }
 
@@ -169,7 +186,7 @@ async function startExport() {
 
     const opt = {
       margin: margins,
-      filename: 'document.pdf',
+      filename: getPdfFilename(),
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: {
         scale: 2,
@@ -178,7 +195,6 @@ async function startExport() {
         onclone: (clonedDoc) => prepareClone(clonedDoc),
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      // Prevent headings, code blocks, and tables from being sliced across pages
       pagebreak: {
         mode: ['css', 'legacy'],
         avoid: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'pre', 'blockquote', 'table', 'tr', 'img'],
