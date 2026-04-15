@@ -8,25 +8,34 @@
   line-height: 1.7;
 }
 
-#preview h1 { font-size: var(--h1-size); color: var(--h1-color); margin: 0.5em 0; }
-#preview h2 { font-size: var(--h2-size); color: var(--h2-color); margin: 0.5em 0; }
-#preview h3 { font-size: var(--h3-size); color: var(--h3-color); margin: 0.5em 0; }
-#preview h4 { font-size: var(--h4-size); color: var(--h4-color); margin: 0.5em 0; }
+#preview h1 { font-size: var(--h1-size); color: var(--h1-color); margin: 0.5em 0 0.3em; font-weight: 700; }
+#preview h2 { font-size: var(--h2-size); color: var(--h2-color); margin: 0.5em 0 0.3em; font-weight: 600; }
+#preview h3 { font-size: var(--h3-size); color: var(--h3-color); margin: 0.5em 0 0.3em; font-weight: 600; }
+#preview h4 { font-size: var(--h4-size); color: var(--h4-color); margin: 0.5em 0 0.3em; font-weight: 600; }
 
 #preview p { margin: 0.75em 0; }
 #preview ul, #preview ol { margin: 0.75em 0; padding-left: 1.5em; }
 #preview li { margin: 0.25em 0; }
 
-#preview a { color: var(--color-accent); }
+#preview a { color: var(--link-color); text-decoration: underline; text-underline-offset: 2px; }
+#preview a:hover { opacity: 0.8; }
 
-#preview hr { border: none; border-top: 1px solid var(--border-color); margin: 1.5em 0; }
+#preview hr {
+  border: none;
+  border-top: 2px solid var(--border-color);
+  margin: 2em 0;
+}
 
 #preview blockquote {
-  border-left: 4px solid var(--color-accent);
-  padding: 0.5em 1em;
+  border-left: 4px solid var(--blockquote-border);
+  background: var(--blockquote-bg);
+  padding: 0.6em 1em 0.6em 1.2em;
   margin: 1em 0;
-  opacity: 0.8;
+  border-radius: 0 4px 4px 0;
+  color: var(--body-color);
 }
+
+#preview blockquote p { margin: 0; }
 
 #preview table { border-collapse: collapse; width: 100%; margin: 1em 0; }
 #preview th, #preview td {
@@ -34,36 +43,49 @@
   padding: 8px 12px;
   text-align: left;
 }
-#preview th { background: var(--code-bg); }
-
-/* ── Code blocks ── */
-#preview pre {
+#preview th {
   background: var(--code-bg);
-  border-radius: 6px;
+  color: var(--h3-color);
+  font-weight: 600;
+}
+
+/* ── Code blocks — override hljs theme background ── */
+#preview pre {
+  background: var(--code-bg) !important;
+  color: var(--code-color);
+  border-radius: 8px;
   padding: 16px;
   overflow-x: auto;
   margin: 1em 0;
   position: relative;
+  box-shadow: var(--shadow-sm);
 }
 
+/* Vertical indent grid */
 #preview pre.code-grid-on {
   background-image: repeating-linear-gradient(
     to right,
     transparent,
     transparent calc(2ch - 1px),
-    var(--border-color) calc(2ch - 1px),
-    var(--border-color) calc(2ch)
-  );
+    color-mix(in srgb, var(--border-color) 60%, transparent) calc(2ch - 1px),
+    color-mix(in srgb, var(--border-color) 60%, transparent) calc(2ch)
+  ) !important;
   background-size: 2ch 100%;
 }
 
-#preview code {
-  font-family: 'Fira Code', 'Cascadia Code', monospace;
-  font-size: 0.9em;
+#preview pre code {
+  background: transparent !important;
+  font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+  font-size: 0.88em;
+  line-height: 1.6;
 }
 
-#preview p code {
-  background: var(--code-bg);
+/* Inline code */
+#preview :not(pre) > code {
+  background: var(--inline-code-bg) !important;
+  color: var(--inline-code-color);
   padding: 2px 6px;
   border-radius: 4px;
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.88em;
 }
