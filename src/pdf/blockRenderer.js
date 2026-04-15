@@ -14,15 +14,18 @@ function renderBlock(token, styles, isDark) {
 
     case 'heading': {
       const hs = styles.headings[token.depth] || styles.headings[6]
-      return {
-        text:         renderInline(token.tokens, styles),
-        fontSize:     hs.fontSize,
-        color:        hs.color,
-        bold:         hs.bold,
-        id:           slugify(token.text),
-        marginTop:    hs.marginTop,
-        marginBottom: hs.marginBottom,
-      }
+      // Zero-height anchor before the heading so linkToDestination lands correctly
+      return [
+        { text: '', id: slugify(token.text), fontSize: 0.01, margin: [0, 0, 0, 0] },
+        {
+          text:         renderInline(token.tokens, styles),
+          fontSize:     hs.fontSize,
+          color:        hs.color,
+          bold:         hs.bold,
+          marginTop:    hs.marginTop,
+          marginBottom: hs.marginBottom,
+        },
+      ]
     }
 
     case 'paragraph':
@@ -58,35 +61,42 @@ function renderBlock(token, styles, isDark) {
           widths: [3, '*'],
           body: [[
             { border: [false, false, false, false], fillColor: styles.blockquote.border, text: ' ' },
-            { border: [false, false, false, false], stack: inner, margin: [10, 4, 0, 4],
+            { border: [false, false, false, false], stack: inner, margin: [10, 4, 6, 4],
               fillColor: styles.blockquote.background },
           ]],
         },
-        layout: 'noBorders',
-        margin: [0, 6, 0, 6],
+        margin: [10, 6, 0, 6],
       }
     }
 
     case 'list': {
+      const allTasks = token.items.every((item) => item.task)
+      if (allTasks) {
+        // Task lists: render as stack so we don't get double bullet + checkbox
+        return {
+          stack:        token.items.map((item) => renderListItem(item, styles, isDark)),
+          marginBottom: 6,
+        }
+      }
       const items = token.items.map((item) => renderListItem(item, styles, isDark))
       return token.ordered
-        ? { ol: items, fontSize: styles.body.fontSize, color: styles.body.color, marginBottom: 6 }
-        : { ul: items, fontSize: styles.body.fontSize, color: styles.body.color, marginBottom: 6 }
+        ? { ol: items, fontSize: styles.body.fontSize, color: styles.body.color, margin: [15, 0, 0, 6] }
+        : { ul: items, fontSize: styles.body.fontSize, color: styles.body.color, margin: [15, 0, 0, 6] }
     }
 
     case 'table': {
       const headerRow = token.header.map((cell) => ({
         text:      renderInline(cell.tokens, styles),
         bold:      true,
-        fillColor: styles.code.background,
+        fillColor: '#efefef',
         fontSize:  styles.body.fontSize,
-        margin:    [4, 3, 4, 3],
+        margin:    [4, 4, 4, 4],
       }))
       const dataRows = token.rows.map((row) =>
         row.map((cell) => ({
           text:     renderInline(cell.tokens, styles),
           fontSize: styles.body.fontSize,
-          margin:   [4, 3, 4, 3],
+          margin:   [4, 4, 4, 4],
         }))
       )
       return {
@@ -122,9 +132,9 @@ function renderBlock(token, styles, isDark) {
 }
 
 function renderListItem(item, styles, isDark) {
-  // GFM task list item
+  // GFM task list item — ✓/○ are supported by Roboto; ☑/☐ are not
   if (item.task) {
-    const mark = item.checked ? '☑ ' : '☐ '
+    const mark  = item.checked ? '✓ ' : '○ '
     const color = item.checked ? styles.checkbox.color : '#888888'
     const inlineTokens = item.tokens?.[0]?.tokens || []
     return {
@@ -132,7 +142,8 @@ function renderListItem(item, styles, isDark) {
         { text: mark, color, bold: true },
         ...renderInline(inlineTokens, styles),
       ],
-      fontSize: styles.body.fontSize,
+      fontSize:     styles.body.fontSize,
+      marginBottom: 3,
     }
   }
 
