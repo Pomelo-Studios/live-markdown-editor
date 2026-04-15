@@ -81,6 +81,16 @@
 }
 
 /* Inline code */
+/* Checklist */
+#preview input[type="checkbox"] {
+  accent-color: var(--checkbox-color);
+  width: 15px;
+  height: 15px;
+  margin-right: 6px;
+  vertical-align: middle;
+  cursor: default;
+}
+
 #preview :not(pre) > code {
   background: var(--inline-code-bg) !important;
   color: var(--inline-code-color);

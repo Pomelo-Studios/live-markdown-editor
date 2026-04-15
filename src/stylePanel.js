@@ -108,6 +108,7 @@ function resetSection(sectionName) {
     headings: ['--h1-size','--h1-color','--h2-size','--h2-color','--h3-size','--h3-color','--h4-size','--h4-color'],
     body: ['--body-size','--body-color'],
     links: ['--link-color'],
+    checklist: ['--checkbox-color'],
     blockquote: ['--blockquote-border','--blockquote-bg'],
     code: ['--code-bg','--code-color'],
     'inline-code': ['--inline-code-bg','--inline-code-color'],
