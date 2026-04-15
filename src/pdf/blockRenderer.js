@@ -41,7 +41,7 @@ function renderBlock(token, styles, isDark) {
         table: {
           widths: ['*'],
           body: [[{
-            stack: [{ text: textItems, font: 'Courier', fontSize: styles.code.fontSize, preserveLeadingSpaces: true }],
+            stack: [{ text: textItems, fontSize: styles.code.fontSize, preserveLeadingSpaces: true }],
             fillColor: styles.code.background,
             border:    [false, false, false, false],
             margin:    [10, 8, 10, 8],

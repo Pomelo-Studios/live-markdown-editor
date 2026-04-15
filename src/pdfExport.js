@@ -40,20 +40,6 @@ function buildDocDefinition(markdown, styles) {
       color:    styles.body.color,
       lineHeight: 1.4,
     },
-    fonts: {
-      Roboto: {
-        normal:      'Roboto-Regular.ttf',
-        bold:        'Roboto-Medium.ttf',
-        italics:     'Roboto-Italic.ttf',
-        bolditalics: 'Roboto-MediumItalic.ttf',
-      },
-      Courier: {
-        normal:      'Courier',
-        bold:        'Courier-Bold',
-        italics:     'Courier-Oblique',
-        bolditalics: 'Courier-BoldOblique',
-      },
-    },
   }
 
   // Background color (only set if non-white to keep file size smaller)
