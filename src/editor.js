@@ -6,29 +6,65 @@ const STORAGE_KEY = 'editor-content'
 
 const DEFAULT_CONTENT = `# Welcome to Live Markdown Editor
 
-A **live** markdown editor with _style customization_, code highlighting, and PDF export.
+A **live** markdown editor with _style customization_, syntax highlighting, and PDF export. Use the **Style Panel** on the left to customize every element.
 
 ## Features
 
-- Split pane: edit on the left, preview on the right
-- Drag the divider to resize panes
-- Customize heading sizes, colors, and margins in the left panel
-- Dark and light theme support
+- Split pane: edit left, preview right — drag the divider to resize
+- Per-element font sizes and colors (H1–H4, body, links, code blocks)
+- Blockquote, inline code, and margin customization
+- Dark / light theme with system preference detection
+- PDF export with inline preview before download
 
-## Code Example
+## Blockquote
+
+> This is a blockquote. Its border color and background are fully customizable in the Style Panel.
+
+## Links
+
+Visit the [Pomelo Studios GitHub](https://github.com/Pomelo-Studios) for more projects.
+
+---
+
+## Code Block
 
 \`\`\`js
 function greet(name) {
   return \`Hello, \${name}!\`
 }
-console.log(greet('World'))
+
+const users = ['Alice', 'Bob', 'Carol']
+users.forEach(user => console.log(greet(user)))
 \`\`\`
+
+### Inline Code
+
+Use \`const\` instead of \`var\` for block-scoped variables. The \`--code-bg\` CSS variable controls this background.
+
+---
+
+## Table
+
+| Feature         | Status  | Notes                  |
+|-----------------|---------|------------------------|
+| Live preview    | ✅ Done  | Debounced at 150ms     |
+| Style panel     | ✅ Done  | Per-element + global   |
+| PDF export      | ✅ Done  | Blob URL inline preview|
+| Dark theme      | ✅ Done  | System preference aware|
+| Mobile nav      | ✅ Done  | Bottom tab bar         |
+
+## Headings Demo
+
+### H3 Heading
+
+#### H4 Heading
 
 ## Checklist
 
 - [x] Markdown rendering
 - [x] Syntax highlighting
-- [ ] Your next document
+- [x] Blockquotes, tables, inline code
+- [ ] Your next document starts here
 `
 
 export function initEditor(onInput) {

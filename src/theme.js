@@ -4,10 +4,20 @@ import { storageGet, storageSet } from './utils/storage.js'
 const STORAGE_KEY = 'theme'
 const TOGGLE_BTN = document.getElementById('theme-toggle')
 
+const HLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles'
+
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme)
   TOGGLE_BTN.textContent = theme === 'dark' ? '☀' : '🌙'
   storageSet(STORAGE_KEY, theme)
+
+  // Switch highlight.js stylesheet for light/dark syntax colors
+  const hljsLink = document.getElementById('hljs-theme')
+  if (hljsLink) {
+    hljsLink.href = theme === 'dark'
+      ? `${HLJS_CDN}/github-dark.min.css`
+      : `${HLJS_CDN}/github.min.css`
+  }
 }
 
 export function initTheme() {
