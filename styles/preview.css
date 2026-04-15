@@ -59,9 +59,11 @@
   margin: 1em 0;
   position: relative;
   box-shadow: var(--shadow-sm);
+  font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+  font-size: 0.88em;
 }
 
-/* Vertical indent grid */
+/* Vertical indent grid — aligned to actual tab width (2 chars = 1 indent level) */
 #preview pre.code-grid-on {
   background-image: repeating-linear-gradient(
     to right,
@@ -71,12 +73,13 @@
     color-mix(in srgb, var(--border-color) 60%, transparent) calc(2ch)
   ) !important;
   background-size: 2ch 100%;
+  background-position: 16px 0;
 }
 
 #preview pre code {
   background: transparent !important;
-  font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
-  font-size: 0.88em;
+  font-family: inherit;
+  font-size: 1em;
   line-height: 1.6;
 }
 
