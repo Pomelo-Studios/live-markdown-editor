@@ -118,6 +118,13 @@
   border-color: transparent;
 }
 
+.sidebar__reset-icon {
+  font-size: 16px;
+  line-height: 1;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+
 /* ── Content scroll area ── */
 .sidebar__content {
   flex: 1;
@@ -147,14 +154,14 @@
   justify-content: space-between;
   margin-bottom: 10px;
   padding-bottom: 6px;
-  border-bottom: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-section-title) 30%, transparent);
 }
 
 .panel-section__title {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--color-accent);
+  color: var(--color-section-title);
   font-weight: 700;
 }
 
