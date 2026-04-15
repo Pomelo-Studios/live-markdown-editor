@@ -92,6 +92,7 @@
   margin-right: 6px;
   vertical-align: middle;
   cursor: default;
+  opacity: 1;
 }
 
 #preview :not(pre) > code {
