@@ -40,11 +40,17 @@ function renderBlock(token, styles, isDark) {
       const textItems = token.text
         ? highlightCode(token.text, token.lang || '', styles.code.color, isDark)
         : [{ text: '' }]
+      const codeBlock = {
+        text:                textItems,
+        fontSize:            styles.code.fontSize,
+        preserveLeadingSpaces: true,
+      }
+      if (styles.hasFiraCode) codeBlock.font = 'FiraCode'
       return {
         table: {
           widths: ['*'],
           body: [[{
-            stack: [{ text: textItems, fontSize: styles.code.fontSize, preserveLeadingSpaces: true }],
+            stack:     [codeBlock],
             fillColor: styles.code.background,
             border:    [false, false, false, false],
             margin:    [10, 8, 10, 8],
@@ -132,15 +138,20 @@ function renderBlock(token, styles, isDark) {
 }
 
 function renderListItem(item, styles, isDark) {
-  // GFM task list item — ✓/○ are supported by Roboto; ☑/☐ are not
+  // GFM task list item — [x]/[ ] ASCII marks work with all fonts
   if (item.task) {
-    const mark  = item.checked ? '✓ ' : '○ '
+    const mark  = item.checked ? '[x] ' : '[ ] '
     const color = item.checked ? styles.checkbox.color : '#888888'
-    const inlineTokens = item.tokens?.[0]?.tokens || []
+    const firstToken    = item.tokens?.[0]
+    const inlineTokens  = firstToken?.tokens || []
+    const textFallback  = firstToken?.text || ''
+    const inlineContent = inlineTokens.length > 0
+      ? renderInline(inlineTokens, styles)
+      : [{ text: textFallback }]
     return {
       text: [
         { text: mark, color, bold: true },
-        ...renderInline(inlineTokens, styles),
+        ...inlineContent,
       ],
       fontSize:     styles.body.fontSize,
       marginBottom: 3,
