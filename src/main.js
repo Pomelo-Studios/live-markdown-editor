@@ -6,6 +6,7 @@ import { initResizer } from './resizer.js'
 import { initStylePanel } from './stylePanel.js'
 import { initPdfExport } from './pdfExport.js'
 import { initMobileNav } from './mobileNav.js'
+import { initFormatToolbar } from './formatToolbar.js'
 
 initTheme()
 initResizer()
@@ -15,3 +16,4 @@ initMobileNav()
 setScrollToLineCallback(scrollToLine)
 const initialContent = initEditor((markdown) => renderPreviewDebounced(markdown))
 renderPreview(initialContent)
+initFormatToolbar()
