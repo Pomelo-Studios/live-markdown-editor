@@ -36,6 +36,7 @@ function enterPdfMode() {
 
 function exitPdfMode() {
   exportBtn.textContent = 'PDF Export'
+  exportBtn.removeEventListener('click', downloadPdf)
   exportBtn.addEventListener('click', startExport)
 
   const closeBtn = document.getElementById('pdf-close-btn')
