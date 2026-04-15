@@ -67,6 +67,19 @@ function saveSettings() {
 
 function loadSettings() {
   const settings = storageGet(STORAGE_KEY)
+
+  // Initialize background picker with current computed theme value
+  // so it reflects the active theme before any user customization
+  const bgInput = document.querySelector('[data-var="--bg-preview"]')
+  if (bgInput && !settings?.['--bg-preview']) {
+    const computed = getComputedStyle(document.documentElement).getPropertyValue('--bg-preview').trim()
+    if (computed) {
+      bgInput.value = computed
+      const hexInput = document.querySelector('[data-hex-for="--bg-preview"]')
+      if (hexInput) hexInput.value = computed
+    }
+  }
+
   if (!settings) return
 
   getCSSVarInputs().forEach((input) => {
@@ -113,6 +126,7 @@ function resetSection(sectionName) {
     code: ['--code-bg','--code-color'],
     'inline-code': ['--inline-code-bg','--inline-code-color'],
     margins: ['--preview-margin-top','--preview-margin-right','--preview-margin-bottom','--preview-margin-left'],
+    background: ['--bg-preview'],
   }
   const vars = sectionMap[sectionName] || []
   vars.forEach((varName) => {
@@ -180,5 +194,55 @@ export function initStylePanel() {
   // Sidebar toggle
   toggleBtn.addEventListener('click', () => {
     sidebar.classList.toggle('sidebar--collapsed')
+  })
+
+  // ── Settings export ──
+  document.getElementById('export-settings-btn')?.addEventListener('click', () => {
+    const settings = {}
+    getCSSVarInputs().forEach((input) => { settings[input.dataset.var] = input.value })
+    const gridToggle = document.getElementById('code-grid-toggle')
+    settings['--code-grid-on'] = gridToggle.checked
+    const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'markdown-editor-styles.json'
+    a.click()
+    URL.revokeObjectURL(url)
+  })
+
+  // ── Settings import ──
+  const importFile = document.getElementById('import-settings-file')
+  document.getElementById('import-settings-btn')?.addEventListener('click', () => importFile?.click())
+  importFile?.addEventListener('change', () => {
+    const file = importFile.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const settings = JSON.parse(e.target.result)
+        getCSSVarInputs().forEach((input) => {
+          const saved = settings[input.dataset.var]
+          if (saved === undefined) return
+          input.value = saved
+          applyVar(input.dataset.var, saved)
+          if (input.type === 'color') {
+            const hexInput = document.querySelector(`[data-hex-for="${input.dataset.var}"]`)
+            if (hexInput) hexInput.value = saved
+          }
+        })
+        const gridToggle = document.getElementById('code-grid-toggle')
+        if (settings['--code-grid-on'] !== undefined) {
+          gridToggle.checked = settings['--code-grid-on']
+          document.documentElement.style.setProperty('--code-grid', settings['--code-grid-on'] ? 'block' : 'none')
+        }
+        saveSettings()
+        refreshCodeGrid()
+      } catch {
+        console.error('Invalid settings file')
+      }
+      importFile.value = ''
+    }
+    reader.readAsText(file)
   })
 }

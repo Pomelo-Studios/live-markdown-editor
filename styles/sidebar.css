@@ -82,8 +82,8 @@
 /* Chevron drawn with CSS — perfectly centered, no character overflow */
 .sidebar__toggle-icon {
   display: block;
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-top: 2px solid var(--color-sidebar-header-text);
   border-right: 2px solid var(--color-sidebar-header-text);
   transform: rotate(225deg);
@@ -119,7 +119,7 @@
 }
 
 .sidebar__reset-icon {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1;
   vertical-align: middle;
   margin-right: 2px;
@@ -284,6 +284,33 @@
   accent-color: var(--color-accent);
   cursor: pointer;
   flex-shrink: 0;
+}
+
+/* ── Settings export / import row ── */
+.sidebar__io-row {
+  display: flex;
+  gap: 6px;
+  margin: -4px 12px 14px;
+}
+
+.sidebar__io-btn {
+  flex: 1;
+  padding: 5px 8px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--color-sidebar-label);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  text-align: center;
+}
+
+.sidebar__io-btn:hover {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: transparent;
 }
 
 /* ── Divider between sections ── */
