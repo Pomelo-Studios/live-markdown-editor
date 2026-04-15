@@ -1,36 +1,30 @@
 /* styles/formatToolbar.css */
 
-/* ── Theme vars (light default) ── */
+/* ── Theme vars — only values that don't exist in the global system ── */
 :root {
-  --fmt-bg:           #ffffff;
-  --fmt-shadow:       0 8px 28px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08);
-  --fmt-border-clr:   rgba(0, 0, 0, 0.10);
-  --fmt-arrow-clr:    #ffffff;
-  --fmt-btn-color:    #444444;
-  --fmt-btn-hover-bg: rgba(0, 0, 0, 0.06);
-  --fmt-btn-active-bg:rgba(109, 40, 217, 0.12);
-  --fmt-sep-color:    rgba(0, 0, 0, 0.10);
-  --fmt-input-bg:     rgba(0, 0, 0, 0.04);
-  --fmt-input-border: rgba(0, 0, 0, 0.14);
-  --fmt-input-color:  #333333;
-  --fmt-ok-hover:     #6d28d9;
-  --fmt-cancel-hover: #dc2626;
+  --fmt-shadow:        0 8px 28px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08);
+  --fmt-border-clr:    rgba(0, 0, 0, 0.10);
+  --fmt-btn-color:     #444444;
+  --fmt-btn-hover-bg:  rgba(0, 0, 0, 0.06);
+  --fmt-btn-active-bg: rgba(109, 40, 217, 0.12);
+  --fmt-sep-color:     rgba(0, 0, 0, 0.10);
+  --fmt-input-bg:      rgba(0, 0, 0, 0.04);
+  --fmt-input-border:  rgba(0, 0, 0, 0.14);
+  --fmt-input-color:   #333333;
+  --fmt-cancel-hover:  #dc2626;
 }
 
 [data-theme="dark"] {
-  --fmt-bg:           #1a1a2e;
-  --fmt-shadow:       0 8px 28px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3);
-  --fmt-border-clr:   rgba(255, 255, 255, 0.10);
-  --fmt-arrow-clr:    #1a1a2e;
-  --fmt-btn-color:    #b8b8d0;
-  --fmt-btn-hover-bg: rgba(255, 255, 255, 0.10);
-  --fmt-btn-active-bg:rgba(167, 139, 250, 0.20);
-  --fmt-sep-color:    rgba(255, 255, 255, 0.12);
-  --fmt-input-bg:     rgba(255, 255, 255, 0.07);
-  --fmt-input-border: rgba(255, 255, 255, 0.14);
-  --fmt-input-color:  #e0e0f0;
-  --fmt-ok-hover:     #a78bfa;
-  --fmt-cancel-hover: #f97583;
+  --fmt-shadow:        0 8px 28px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3);
+  --fmt-border-clr:    rgba(255, 255, 255, 0.10);
+  --fmt-btn-color:     #b8b8d0;
+  --fmt-btn-hover-bg:  rgba(255, 255, 255, 0.10);
+  --fmt-btn-active-bg: rgba(167, 139, 250, 0.20);
+  --fmt-sep-color:     rgba(255, 255, 255, 0.12);
+  --fmt-input-bg:      rgba(255, 255, 255, 0.07);
+  --fmt-input-border:  rgba(255, 255, 255, 0.14);
+  --fmt-input-color:   #e0e0f0;
+  --fmt-cancel-hover:  #f97583;
 }
 
 /* ── Floating popup toolbar ── */
@@ -40,7 +34,7 @@
   align-items: center;
   gap: 1px;
   padding: 5px 8px;
-  background: var(--fmt-bg);
+  background: var(--bg-toolbar);
   border: 1px solid var(--fmt-border-clr);
   border-radius: 10px;
   box-shadow: var(--fmt-shadow);
@@ -57,7 +51,7 @@
   left: var(--fmt-arrow-x, 50%);
   transform: translateX(-50%);
   border: 6px solid transparent;
-  border-top-color: var(--fmt-arrow-clr);
+  border-top-color: var(--bg-toolbar);
   pointer-events: none;
 }
 
@@ -66,7 +60,7 @@
   top: auto;
   bottom: 100%;
   border-top-color: transparent;
-  border-bottom-color: var(--fmt-arrow-clr);
+  border-bottom-color: var(--bg-toolbar);
 }
 
 /* ── Fixed ribbon toolbar ── */
@@ -104,7 +98,7 @@
 
 .fmt-btn:hover {
   background: var(--fmt-btn-hover-bg);
-  color: var(--color-accent, #6d28d9);
+  color: var(--color-accent);
 }
 
 .fmt-btn:active {
@@ -176,7 +170,7 @@
 }
 
 .fmt-url-input:focus {
-  border-color: var(--color-accent, #6d28d9);
+  border-color: var(--color-accent);
 }
 
 .fmt-url-input::placeholder {
@@ -199,5 +193,5 @@
 .fmt-url-ok    { color: var(--color-sidebar-label, #888); }
 .fmt-url-cancel { color: var(--color-sidebar-label, #888); }
 
-.fmt-url-ok:hover     { color: var(--fmt-ok-hover);     background: var(--fmt-btn-hover-bg); }
-.fmt-url-cancel:hover { color: var(--fmt-cancel-hover); background: var(--fmt-btn-hover-bg); }
+.fmt-url-ok:hover     { color: var(--color-accent);      background: var(--fmt-btn-hover-bg); }
+.fmt-url-cancel:hover { color: var(--fmt-cancel-hover);  background: var(--fmt-btn-hover-bg); }
