@@ -92,3 +92,17 @@ export function initEditor(onInput) {
 
   return textarea.value
 }
+
+export function scrollToLine(lineNumber) {
+  const textarea = document.getElementById('editor')
+  const lines = textarea.value.split('\n')
+  const target = Math.max(0, Math.min(lineNumber - 1, lines.length - 1))
+
+  let charPos = 0
+  for (let i = 0; i < target; i++) charPos += lines[i].length + 1
+
+  const lineHeight = textarea.scrollHeight / Math.max(lines.length, 1)
+  textarea.scrollTop = Math.max(0, target * lineHeight - textarea.clientHeight / 3)
+  textarea.focus()
+  textarea.setSelectionRange(charPos, charPos + (lines[target]?.length || 0))
+}

@@ -55,24 +55,62 @@ async function downloadPdf() {
   link.click()
 }
 
+function pxToMm(px) {
+  return px * 0.2646
+}
+
+function readMargins() {
+  const cs = getComputedStyle(document.documentElement)
+  return {
+    top:    pxToMm(parseFloat(cs.getPropertyValue('--preview-margin-top'))    || 24),
+    right:  pxToMm(parseFloat(cs.getPropertyValue('--preview-margin-right'))  || 32),
+    bottom: pxToMm(parseFloat(cs.getPropertyValue('--preview-margin-bottom')) || 24),
+    left:   pxToMm(parseFloat(cs.getPropertyValue('--preview-margin-left'))   || 32),
+  }
+}
+
 async function startExport() {
   exportBtn.textContent = '...'
   exportBtn.disabled = true
 
-  const html2pdfLib = await getHtml2Pdf()
-  const opt = {
-    margin: 0,
-    filename: 'document.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+  try {
+    // Ensure web fonts (Fira Code, etc.) are loaded before capturing
+    await document.fonts.ready
+
+    const html2pdfLib = await getHtml2Pdf()
+    const margins = readMargins()
+
+    // Clone preview and strip its padding — html2pdf margin handles page spacing
+    const clone = preview.cloneNode(true)
+    clone.style.cssText = 'padding:0;margin:0;box-shadow:none;background:transparent;'
+    clone.style.width = preview.clientWidth + 'px'
+    clone.style.position = 'absolute'
+    clone.style.top = '-99999px'
+    clone.style.left = '0'
+    // Remove hover artifacts before cloning
+    clone.querySelectorAll('.preview-goto-btn').forEach((b) => b.remove())
+    clone.querySelectorAll('.preview-line-hl').forEach((el) => el.classList.remove('preview-line-hl'))
+    document.body.appendChild(clone)
+
+    const opt = {
+      margin: [margins.top, margins.right, margins.bottom, margins.left],
+      filename: 'document.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    }
+
+    const pdfBlob = await html2pdfLib().set(opt).from(clone).outputPdf('blob')
+    document.body.removeChild(clone)
+
+    pdfBlobUrl = URL.createObjectURL(pdfBlob)
+    exportBtn.disabled = false
+    enterPdfMode()
+  } catch (err) {
+    console.error('PDF export failed:', err)
+    exportBtn.textContent = 'PDF Export'
+    exportBtn.disabled = false
   }
-
-  const pdfBlob = await html2pdfLib().set(opt).from(preview).outputPdf('blob')
-  pdfBlobUrl = URL.createObjectURL(pdfBlob)
-
-  exportBtn.disabled = false
-  enterPdfMode()
 }
 
 export function initPdfExport() {
