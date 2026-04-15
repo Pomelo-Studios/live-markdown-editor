@@ -36,6 +36,9 @@
   /* Links */
   --link-color: #6d28d9;
 
+  /* Checklist */
+  --checkbox-color: #6d28d9;
+
   /* Inline code */
   --inline-code-bg: #eeeeee;
   --inline-code-color: #d63e6b;
@@ -100,6 +103,7 @@
   --blockquote-border: #9b7fff;
   --blockquote-bg: rgba(155,127,255,0.06);
   --link-color: #9b7fff;
+  --checkbox-color: #9b7fff;
   --inline-code-bg: #252535;
   --inline-code-color: #ff8fab;
 }
