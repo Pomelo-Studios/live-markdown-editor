@@ -66,5 +66,11 @@ export function readPdfStyles() {
     checkbox: {
       color: get('--checkbox-color') || '#6d28d9',
     },
+
+    tableHeader: {
+      background: get('--table-header-bg') || '#efefef',
+    },
+
+    tableBorder: get('--border-color') || '#e1e4e8',
   }
 }

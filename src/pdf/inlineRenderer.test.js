@@ -15,10 +15,10 @@ describe('renderInline', () => {
     expect(out).toEqual([{ text: 'Hello' }])
   })
 
-  test('strong wraps children with bold', () => {
+  test('strong applies bold to leaf nodes', () => {
     const out = renderInline([{ type: 'strong', tokens: [{ type: 'text', text: 'Bold' }] }], S)
     expect(out[0].bold).toBe(true)
-    expect(out[0].text[0].text).toBe('Bold')
+    expect(out[0].text).toBe('Bold')
   })
 
   test('em wraps children with italics', () => {

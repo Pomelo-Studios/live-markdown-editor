@@ -3,6 +3,22 @@ import { slugify }        from '../preview.js'
 import { renderInline }   from './inlineRenderer.js'
 import { highlightCode }  from './syntaxHighlight.js'
 
+/**
+ * Apply a style as defaults to all items (item's own props take priority).
+ * Recurses into array `text` to handle nested inline nodes.
+ * Used to push heading bold/color down to leaf nodes because pdfmake
+ * doesn't cascade block-level styles through text arrays reliably.
+ */
+function propagateToLeaves(items, style) {
+  return items.map(item => {
+    const merged = { ...style, ...item }
+    if (Array.isArray(merged.text)) {
+      merged.text = propagateToLeaves(merged.text, style)
+    }
+    return merged
+  })
+}
+
 /** Recursively render any token array (block-level). */
 export function renderTokens(tokens, styles, isDark = false) {
   if (!tokens || tokens.length === 0) return []
@@ -14,13 +30,14 @@ function renderBlock(token, styles, isDark) {
 
     case 'heading': {
       const hs = styles.headings[token.depth] || styles.headings[6]
-      // Zero-height anchor before the heading so linkToDestination lands correctly
+      // Push heading color + bold down to every leaf so pdfmake renders them correctly
+      const headingStyle = { bold: hs.bold, color: hs.color }
+      const items = propagateToLeaves(renderInline(token.tokens, styles), headingStyle)
       return [
         { text: '', id: slugify(token.text), fontSize: 0.01, margin: [0, 0, 0, 0] },
         {
-          text:         renderInline(token.tokens, styles),
+          text:         items,
           fontSize:     hs.fontSize,
-          color:        hs.color,
           bold:         hs.bold,
           marginTop:    hs.marginTop,
           marginBottom: hs.marginBottom,
@@ -41,8 +58,8 @@ function renderBlock(token, styles, isDark) {
         ? highlightCode(token.text, token.lang || '', styles.code.color, isDark)
         : [{ text: '' }]
       const codeBlock = {
-        text:                textItems,
-        fontSize:            styles.code.fontSize,
+        text:                  textItems,
+        fontSize:              styles.code.fontSize,
         preserveLeadingSpaces: true,
       }
       if (styles.hasFiraCode) codeBlock.font = 'FiraCode'
@@ -66,19 +83,27 @@ function renderBlock(token, styles, isDark) {
         table: {
           widths: [3, '*'],
           body: [[
-            { border: [false, false, false, false], fillColor: styles.blockquote.border, text: ' ' },
-            { border: [false, false, false, false], stack: inner, margin: [10, 4, 6, 4],
-              fillColor: styles.blockquote.background },
+            {
+              border:    [false, false, false, false],
+              fillColor: styles.blockquote.border,
+              text:      '',
+              margin:    [0, 0, 0, 0],
+            },
+            {
+              border:    [false, false, false, false],
+              stack:     inner,
+              margin:    [10, 4, 6, 4],
+              fillColor: styles.blockquote.background || null,
+            },
           ]],
         },
-        margin: [10, 6, 0, 6],
+        margin: [0, 6, 0, 6],
       }
     }
 
     case 'list': {
       const allTasks = token.items.every((item) => item.task)
       if (allTasks) {
-        // Task lists: render as stack so we don't get double bullet + checkbox
         return {
           stack:        token.items.map((item) => renderListItem(item, styles, isDark)),
           marginBottom: 6,
@@ -91,18 +116,22 @@ function renderBlock(token, styles, isDark) {
     }
 
     case 'table': {
+      const borderColor = styles.tableBorder || '#e1e4e8'
+      const headerBg    = styles.tableHeader?.background || '#efefef'
       const headerRow = token.header.map((cell) => ({
         text:      renderInline(cell.tokens, styles),
         bold:      true,
-        fillColor: '#efefef',
+        color:     styles.headings[3]?.color || styles.body.color,
+        fillColor: headerBg,
         fontSize:  styles.body.fontSize,
-        margin:    [4, 4, 4, 4],
+        margin:    [6, 5, 6, 5],
       }))
       const dataRows = token.rows.map((row) =>
         row.map((cell) => ({
           text:     renderInline(cell.tokens, styles),
           fontSize: styles.body.fontSize,
-          margin:   [4, 4, 4, 4],
+          color:    styles.body.color,
+          margin:   [6, 4, 6, 4],
         }))
       )
       return {
@@ -110,6 +139,12 @@ function renderBlock(token, styles, isDark) {
           headerRows: 1,
           widths:     token.header.map(() => '*'),
           body:       [headerRow, ...dataRows],
+        },
+        layout: {
+          hLineWidth: (i, node) => (i === 0 || i === node.table.body.length) ? 0.5 : 0.3,
+          vLineWidth: () => 0.3,
+          hLineColor: () => borderColor,
+          vLineColor: () => borderColor,
         },
         margin: [0, 6, 0, 6],
       }
@@ -128,7 +163,7 @@ function renderBlock(token, styles, isDark) {
       }
 
     case 'space':
-      return null  // filtered out in renderTokens
+      return null
 
     default:
       return token.text
@@ -138,7 +173,6 @@ function renderBlock(token, styles, isDark) {
 }
 
 function renderListItem(item, styles, isDark) {
-  // GFM task list item — [x]/[ ] ASCII marks work with all fonts
   if (item.task) {
     const mark  = item.checked ? '[x] ' : '[ ] '
     const color = item.checked ? styles.checkbox.color : '#888888'
@@ -158,7 +192,6 @@ function renderListItem(item, styles, isDark) {
     }
   }
 
-  // Regular list item — may have sub-lists
   const paragraphTokens = item.tokens.filter((t) => t.type !== 'list')
   const subListTokens   = item.tokens.filter((t) => t.type === 'list')
 

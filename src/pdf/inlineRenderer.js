@@ -1,5 +1,20 @@
 // src/pdf/inlineRenderer.js
 
+/**
+ * Apply a style as default to all items (item's own properties take priority).
+ * Recurses into array `text` so nested formatting also gets the style.
+ * Returns a flat array — pdfmake renders each item individually.
+ */
+function applyStyle(items, style) {
+  return items.map(item => {
+    const merged = { ...style, ...item }
+    if (Array.isArray(merged.text)) {
+      merged.text = applyStyle(merged.text, style)
+    }
+    return merged
+  })
+}
+
 export function renderInline(tokens, styles) {
   if (!tokens || tokens.length === 0) return []
 
@@ -9,14 +24,16 @@ export function renderInline(tokens, styles) {
       case 'escape':
         return { text: token.text || '' }
 
+      // pdfmake doesn't cascade bold/italics/decoration through text arrays,
+      // so applyStyle pushes the formatting down to every leaf node.
       case 'strong':
-        return { text: renderInline(token.tokens, styles), bold: true }
+        return applyStyle(renderInline(token.tokens, styles), { bold: true })
 
       case 'em':
-        return { text: renderInline(token.tokens, styles), italics: true }
+        return applyStyle(renderInline(token.tokens, styles), { italics: true })
 
       case 'del':
-        return { text: renderInline(token.tokens, styles), decoration: 'lineThrough' }
+        return applyStyle(renderInline(token.tokens, styles), { decoration: 'lineThrough' })
 
       case 'codespan':
         return {
@@ -28,19 +45,16 @@ export function renderInline(tokens, styles) {
         }
 
       case 'link': {
+        // Apply link destination + color to every leaf so pdfmake renders them clickable.
         const isAnchor = token.href.startsWith('#')
-        const linkColor = styles.link.color
-        const children = renderInline(token.tokens, styles).map((child) => ({
-          ...child,
-          color: linkColor,
-        }))
-        return {
-          text:       children,
+        const dest = isAnchor
+          ? { linkToDestination: token.href.slice(1) }
+          : { link: token.href }
+        return applyStyle(renderInline(token.tokens, styles), {
+          color:      styles.link.color,
           decoration: styles.link.decoration,
-          ...(isAnchor
-            ? { linkToDestination: token.href.slice(1) }
-            : { link: token.href }),
-        }
+          ...dest,
+        })
       }
 
       case 'highlight':
