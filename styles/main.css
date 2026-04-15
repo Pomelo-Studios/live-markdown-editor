@@ -75,6 +75,7 @@
   --color-footer-bg: #f6f8fa;
   --color-footer-text: #6a737d;
   --border-color: #e1e4e8;
+  --table-header-bg: #eef0f3;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
 }
@@ -99,6 +100,7 @@
   --color-footer-bg: #121212;
   --color-footer-text: #666666;
   --border-color: #2e2e2e;
+  --table-header-bg: #2c2c2c;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.55);
 
