@@ -22,16 +22,17 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 12px;
-  background: var(--color-accent);
+  background: var(--bg-sidebar-header);
+  border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
   min-height: var(--toolbar-height);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
   gap: 8px;
   overflow: hidden;
 }
 
 .sidebar__title {
-  color: #fff;
+  color: var(--color-sidebar-header-text);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -58,9 +59,9 @@
 
 /* ── Toggle button ── */
 .sidebar__toggle {
-  background: rgba(255,255,255,0.15);
-  border: none;
-  color: #fff;
+  background: color-mix(in srgb, var(--color-sidebar-header-text) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-sidebar-header-text) 16%, transparent);
+  color: var(--color-sidebar-header-text);
   cursor: pointer;
   padding: 0;
   border-radius: 6px;
@@ -70,12 +71,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
   line-height: 1;
 }
 
 .sidebar__toggle:hover {
-  background: rgba(255,255,255,0.28);
+  background: color-mix(in srgb, var(--color-sidebar-header-text) 22%, transparent);
 }
 
 /* Chevron drawn with CSS — perfectly centered, no character overflow */
@@ -83,8 +84,8 @@
   display: block;
   width: 8px;
   height: 8px;
-  border-top: 2px solid #fff;
-  border-right: 2px solid #fff;
+  border-top: 2px solid var(--color-sidebar-header-text);
+  border-right: 2px solid var(--color-sidebar-header-text);
   transform: rotate(225deg);
   transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
@@ -96,7 +97,7 @@
 
 /* ── Global reset button ── */
 .sidebar__reset-all {
-  margin: 0 12px 6px;
+  margin: 0 12px 14px;
   padding: 7px 12px;
   background: transparent;
   border: 1px solid var(--border-color);
@@ -161,10 +162,10 @@
   background: transparent;
   border: none;
   color: var(--color-sidebar-label);
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1;
   cursor: pointer;
-  padding: 2px 4px;
+  padding: 2px 5px;
   border-radius: 3px;
   opacity: 0.5;
   transition: opacity 0.15s, color 0.15s, background 0.15s;
