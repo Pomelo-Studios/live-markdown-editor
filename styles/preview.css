@@ -46,7 +46,7 @@
   text-align: left;
 }
 #preview th {
-  background: var(--bg-sidebar);
+  background: var(--table-header-bg);
   color: var(--h3-color);
   font-weight: 600;
 }
