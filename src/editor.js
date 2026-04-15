@@ -6,7 +6,7 @@ const STORAGE_KEY = 'editor-content'
 
 const DEFAULT_CONTENT = `# Welcome to Live Markdown Editor
 
-A **live** markdown editor with _style customization_, syntax highlighting, and PDF export. Use the **Style Panel** on the left to customize every element.
+A **live** markdown editor with _style customization_, *syntax highlighting*, and PDF export. Select any text to reveal the **format toolbar** — bold, italic, headings, links, tables and more. Use the **Style Panel** on the left to customize every element.
 
 ## Table of Contents
 
