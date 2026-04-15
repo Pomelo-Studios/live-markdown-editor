@@ -37,7 +37,16 @@ export async function getPdfMake() {
   try {
     const res = await fetch(FIRA_CODE_CDN)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    window.pdfMake.vfs['FiraCode-Regular.ttf'] = arrayBufferToBase64(await res.arrayBuffer())
+    const b64 = arrayBufferToBase64(await res.arrayBuffer())
+    window.pdfMake.vfs['FiraCode-Regular.ttf'] = b64
+    // pdfmake browser API resolves fonts from pdfMake.fonts (global), not docDef.fonts
+    window.pdfMake.fonts = window.pdfMake.fonts || {}
+    window.pdfMake.fonts.FiraCode = {
+      normal:      'FiraCode-Regular.ttf',
+      bold:        'FiraCode-Regular.ttf',
+      italics:     'FiraCode-Regular.ttf',
+      bolditalics: 'FiraCode-Regular.ttf',
+    }
     window.pdfMake._firaCodeLoaded = true
   } catch (err) {
     console.warn('FiraCode font unavailable, code blocks will use Roboto:', err.message)
