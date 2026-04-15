@@ -24,13 +24,18 @@ export function renderInline(tokens, styles) {
           fontSize:   styles.inlineCode ? (styles.body.fontSize * 0.85) : 10,
           background: styles.inlineCode.background,
           color:      styles.inlineCode.color,
+          ...(styles.hasFiraCode ? { font: 'FiraCode' } : {}),
         }
 
       case 'link': {
         const isAnchor = token.href.startsWith('#')
+        const linkColor = styles.link.color
+        const children = renderInline(token.tokens, styles).map((child) => ({
+          ...child,
+          color: linkColor,
+        }))
         return {
-          text:       renderInline(token.tokens, styles),
-          color:      styles.link.color,
+          text:       children,
           decoration: styles.link.decoration,
           ...(isAnchor
             ? { linkToDestination: token.href.slice(1) }

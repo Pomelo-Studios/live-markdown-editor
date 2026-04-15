@@ -25,10 +25,28 @@ function getPdfFilename() {
 }
 
 // ── Build pdfmake docDefinition ────────────────────────────────────────────
-function buildDocDefinition(markdown, styles) {
-  const isDark  = document.documentElement.getAttribute('data-theme') === 'dark'
-  const tokens  = marked.lexer(markdown)
-  const content = renderTokens(tokens, styles, isDark)
+function buildDocDefinition(markdown, styles, hasFiraCode = false) {
+  const isDark        = document.documentElement.getAttribute('data-theme') === 'dark'
+  const tokens        = marked.lexer(markdown)
+  const stylesWithFont = { ...styles, hasFiraCode }
+  const content       = renderTokens(tokens, stylesWithFont, isDark)
+
+  const fonts = {
+    Roboto: {
+      normal:      'Roboto-Regular.ttf',
+      bold:        'Roboto-Medium.ttf',
+      italics:     'Roboto-Italic.ttf',
+      bolditalics: 'Roboto-MediumItalic.ttf',
+    },
+  }
+  if (hasFiraCode) {
+    fonts.FiraCode = {
+      normal:      'FiraCode-Regular.ttf',
+      bold:        'FiraCode-Regular.ttf',
+      italics:     'FiraCode-Regular.ttf',
+      bolditalics: 'FiraCode-Regular.ttf',
+    }
+  }
 
   const docDef = {
     content,
@@ -40,14 +58,7 @@ function buildDocDefinition(markdown, styles) {
       color:      styles.body.color,
       lineHeight: 1.4,
     },
-    fonts: {
-      Roboto: {
-        normal:      'Roboto-Regular.ttf',
-        bold:        'Roboto-Medium.ttf',
-        italics:     'Roboto-Italic.ttf',
-        bolditalics: 'Roboto-MediumItalic.ttf',
-      },
-    },
+    fonts,
   }
 
   // Background color (only set if non-white to keep file size smaller)
@@ -107,10 +118,11 @@ async function startExport() {
   exportBtn.disabled    = true
 
   try {
-    const pdfMakeLib = await getPdfMake()
-    const markdown   = document.getElementById('editor').value
-    const styles     = readPdfStyles()
-    const docDef     = buildDocDefinition(markdown, styles)
+    const pdfMakeLib  = await getPdfMake()
+    const hasFiraCode = !!pdfMakeLib._firaCodeLoaded
+    const markdown    = document.getElementById('editor').value
+    const styles      = readPdfStyles()
+    const docDef      = buildDocDefinition(markdown, styles, hasFiraCode)
 
     pdfMakeLib.createPdf(docDef).getBlob((blob) => {
       pdfBlobUrl            = URL.createObjectURL(blob)
