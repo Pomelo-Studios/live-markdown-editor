@@ -8,10 +8,22 @@ const DEFAULT_CONTENT = `# Welcome to Live Markdown Editor
 
 A **live** markdown editor with _style customization_, syntax highlighting, and PDF export. Use the **Style Panel** on the left to customize every element.
 
+## Table of Contents
+
+- [Features](#features)
+- [Blockquote](#blockquote)
+- [Links](#links)
+- [Code Block](#code-block)
+- [Table](#table)
+- [Headings Demo](#headings-demo)
+- [Checklist](#checklist)
+
+---
+
 ## Features
 
 - Split pane: edit left, preview right — drag the divider to resize
-- Per-element font sizes and colors (H1–H4, body, links, code blocks)
+- Per-element font sizes and colors (H1–H6, body, links, code blocks)
 - Blockquote, inline code, and margin customization
 - Dark / light theme with system preference detection
 - PDF export with inline preview before download
@@ -58,6 +70,10 @@ Use \`const\` instead of \`var\` for block-scoped variables. The \`--code-bg\` C
 ### H3 Heading
 
 #### H4 Heading
+
+##### H5 Heading
+
+###### H6 Heading
 
 ## Checklist
 
