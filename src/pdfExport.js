@@ -11,19 +11,61 @@ function getHtml2Pdf() {
     if (window.html2pdf) { resolve(window.html2pdf); return }
     const script = document.createElement('script')
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
-    // Timeout safety net — if CDN hangs, fail gracefully
     const timer = setTimeout(() => reject(new Error('html2pdf CDN timed out')), 12000)
     script.onload = () => {
       clearTimeout(timer)
-      if (window.html2pdf) resolve(window.html2pdf)
-      else reject(new Error('html2pdf not defined after load'))
+      window.html2pdf ? resolve(window.html2pdf) : reject(new Error('html2pdf not available after load'))
     }
-    script.onerror = () => {
-      clearTimeout(timer)
-      reject(new Error('Failed to load html2pdf CDN'))
-    }
+    script.onerror = () => { clearTimeout(timer); reject(new Error('Failed to load html2pdf CDN')) }
     document.head.appendChild(script)
   })
+}
+
+// Called by html2canvas on its internal clone — safe to mutate
+function prepareClone(clonedDoc) {
+  // Strip preview padding — html2pdf margin handles per-page spacing
+  const clonedPreview = clonedDoc.getElementById('preview')
+  if (clonedPreview) {
+    clonedPreview.style.padding = '0'
+    clonedPreview.style.background = '#ffffff'
+    clonedPreview.style.color = '#333333'
+  }
+
+  // Replace custom CSS checkboxes with simple spans html2canvas can render.
+  // appearance:none + calc() vars on ::after pseudo-elements crash html2canvas.
+  clonedDoc.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+    const checked = cb.checked
+    const box = clonedDoc.createElement('span')
+    box.style.cssText = [
+      'display:inline-block',
+      'width:12px', 'height:12px',
+      `border:2px solid ${checked ? '#6d28d9' : '#888888'}`,
+      'border-radius:3px',
+      'vertical-align:middle',
+      'margin-right:6px',
+      `background:${checked ? '#6d28d9' : 'transparent'}`,
+      'position:relative',
+    ].join(';')
+
+    if (checked) {
+      const tick = clonedDoc.createElement('span')
+      tick.style.cssText = [
+        'display:block',
+        'position:absolute',
+        'left:2px', 'top:-1px',
+        'width:4px', 'height:7px',
+        'border-right:2px solid #ffffff',
+        'border-bottom:2px solid #ffffff',
+        'transform:rotate(45deg)',
+      ].join(';')
+      box.appendChild(tick)
+    }
+    cb.parentNode.replaceChild(box, cb)
+  })
+
+  // Strip hover artefacts
+  clonedDoc.querySelectorAll('.preview-goto-btn').forEach((b) => b.remove())
+  clonedDoc.querySelectorAll('.preview-line-hl').forEach((el) => el.classList.remove('preview-line-hl'))
 }
 
 function enterPdfMode() {
@@ -49,8 +91,7 @@ function exitPdfMode() {
   exportBtn.removeEventListener('click', downloadPdf)
   exportBtn.addEventListener('click', startExport)
 
-  const closeBtn = document.getElementById('pdf-close-btn')
-  if (closeBtn) closeBtn.remove()
+  document.getElementById('pdf-close-btn')?.remove()
 
   if (pdfIframe) { pdfIframe.remove(); pdfIframe = null }
   if (pdfBlobUrl) { URL.revokeObjectURL(pdfBlobUrl); pdfBlobUrl = null }
@@ -65,55 +106,41 @@ async function downloadPdf() {
   link.click()
 }
 
-function pxToMm(px) { return px * 0.2646 }
-
-function readMargins() {
-  const cs = getComputedStyle(document.documentElement)
-  return {
-    top:    pxToMm(parseFloat(cs.getPropertyValue('--preview-margin-top'))    || 24),
-    right:  pxToMm(parseFloat(cs.getPropertyValue('--preview-margin-right'))  || 32),
-    bottom: pxToMm(parseFloat(cs.getPropertyValue('--preview-margin-bottom')) || 24),
-    left:   pxToMm(parseFloat(cs.getPropertyValue('--preview-margin-left'))   || 32),
-  }
-}
-
 async function startExport() {
   exportBtn.textContent = '...'
   exportBtn.disabled = true
 
-  let clone = null
   try {
-    // Wait for fonts with a fallback timeout so we never hang
     await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 2000))])
 
     const html2pdfLib = await getHtml2Pdf()
-    const margins = readMargins()
 
-    // Clone preview, strip its CSS padding — html2pdf margin covers all page spacing
-    clone = preview.cloneNode(true)
-    // Remove hover UI artifacts from the clone
-    clone.querySelectorAll('.preview-goto-btn').forEach((b) => b.remove())
-    clone.querySelectorAll('.preview-line-hl').forEach((el) => el.classList.remove('preview-line-hl'))
-    // Strip padding; set explicit white background for PDF
-    clone.style.padding = '0'
-    clone.style.margin = '0'
-    clone.style.background = '#ffffff'
-    clone.style.boxShadow = 'none'
-    clone.style.width = preview.clientWidth + 'px'
-    clone.style.position = 'absolute'
-    clone.style.top = '-99999px'
-    clone.style.left = '0'
-    document.body.appendChild(clone)
+    // Read page margins from live CSS vars, convert px → mm
+    const cs = getComputedStyle(document.documentElement)
+    const mm = (varName, fallback) => (parseFloat(cs.getPropertyValue(varName)) || fallback) * 0.2646
+    const margins = [
+      mm('--preview-margin-top', 24),
+      mm('--preview-margin-right', 32),
+      mm('--preview-margin-bottom', 24),
+      mm('--preview-margin-left', 32),
+    ]
 
     const opt = {
-      margin: [margins.top, margins.right, margins.bottom, margins.left],
+      margin: margins,
       filename: 'document.pdf',
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        onclone: (_doc, _el) => prepareClone(_doc),
+      },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     }
 
-    const pdfBlob = await html2pdfLib().set(opt).from(clone).outputPdf('blob')
+    // Export directly from the live preview element — no manual DOM clone needed.
+    // html2canvas makes its own internal clone; prepareClone() modifies that.
+    const pdfBlob = await html2pdfLib().set(opt).from(preview).outputPdf('blob')
     pdfBlobUrl = URL.createObjectURL(pdfBlob)
     exportBtn.disabled = false
     enterPdfMode()
@@ -121,8 +148,6 @@ async function startExport() {
     console.error('PDF export failed:', err)
     exportBtn.textContent = 'PDF Export'
     exportBtn.disabled = false
-  } finally {
-    if (clone && document.body.contains(clone)) document.body.removeChild(clone)
   }
 }
 
