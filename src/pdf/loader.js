@@ -33,14 +33,22 @@ export async function getPdfMake() {
     if (!window.pdfMake) throw new Error('pdfMake not available after load')
   }
 
+  // pdfmake browser API uses pdfMake.fonts global; initialising it (even to {})
+  // causes it to ignore docDef.fonts, so Roboto must be registered here too.
+  window.pdfMake.fonts = {
+    Roboto: {
+      normal:      'Roboto-Regular.ttf',
+      bold:        'Roboto-Medium.ttf',
+      italics:     'Roboto-Italic.ttf',
+      bolditalics: 'Roboto-MediumItalic.ttf',
+    },
+  }
+
   window.pdfMake._firaCodeLoaded = false
   try {
     const res = await fetch(FIRA_CODE_CDN)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const b64 = arrayBufferToBase64(await res.arrayBuffer())
-    window.pdfMake.vfs['FiraCode-Regular.ttf'] = b64
-    // pdfmake browser API resolves fonts from pdfMake.fonts (global), not docDef.fonts
-    window.pdfMake.fonts = window.pdfMake.fonts || {}
+    window.pdfMake.vfs['FiraCode-Regular.ttf'] = arrayBufferToBase64(await res.arrayBuffer())
     window.pdfMake.fonts.FiraCode = {
       normal:      'FiraCode-Regular.ttf',
       bold:        'FiraCode-Regular.ttf',
