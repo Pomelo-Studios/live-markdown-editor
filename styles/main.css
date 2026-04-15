@@ -7,12 +7,16 @@
   --h2-size: 28px;
   --h3-size: 22px;
   --h4-size: 18px;
+  --h5-size: 16px;
+  --h6-size: 14px;
 
   /* Heading colors */
   --h1-color: #111111;
   --h2-color: #222222;
   --h3-color: #333333;
   --h4-color: #444444;
+  --h5-color: #555555;
+  --h6-color: #666666;
 
   /* Body */
   --body-size: 16px;
@@ -103,6 +107,8 @@
   --h2-color: #e0e0e0;
   --h3-color: #d0d0d0;
   --h4-color: #b8b8b8;
+  --h5-color: #a8a8a8;
+  --h6-color: #909090;
   --body-color: #c8c8c8;
   --code-bg: #222222;
   --code-color: #d4d4d4;

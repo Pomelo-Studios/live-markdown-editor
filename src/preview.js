@@ -3,7 +3,25 @@ import { marked } from 'marked'
 import hljs from 'highlight.js'
 import { debounce } from './utils/debounce.js'
 
-marked.use({ breaks: true, gfm: true })
+function slugify(text) {
+  return text
+    .replace(/<[^>]+>/g, '')   // strip HTML tags
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')  // remove special chars
+    .trim()
+    .replace(/\s+/g, '-')
+}
+
+marked.use({
+  breaks: true,
+  gfm: true,
+  renderer: {
+    heading({ text, depth }) {
+      const id = slugify(text)
+      return `<h${depth} id="${id}">${text}</h${depth}>\n`
+    },
+  },
+})
 
 const previewEl = document.getElementById('preview')
 let _scrollToLine = null
@@ -101,11 +119,27 @@ function initHover() {
   })
 
   previewEl.addEventListener('click', (e) => {
+    // Goto-edit button
     const btn = e.target.closest('.preview-goto-btn')
-    if (!btn) return
-    e.stopPropagation()
-    const line = parseInt(btn.dataset.line)
-    if (line > 0 && _scrollToLine) _scrollToLine(line)
+    if (btn) {
+      e.stopPropagation()
+      const line = parseInt(btn.dataset.line)
+      if (line > 0 && _scrollToLine) _scrollToLine(line)
+      return
+    }
+
+    // Anchor links: scroll within preview pane
+    const link = e.target.closest('a[href^="#"]')
+    if (link) {
+      const id = decodeURIComponent(link.getAttribute('href').slice(1))
+      const target = previewEl.querySelector(`[id="${id}"]`)
+      if (target) {
+        e.preventDefault()
+        const pane = document.getElementById('preview-pane')
+        const top = target.getBoundingClientRect().top - pane.getBoundingClientRect().top + pane.scrollTop
+        pane.scrollTo({ top: top - 16, behavior: 'smooth' })
+      }
+    }
   })
 }
 
