@@ -3,7 +3,7 @@ import { marked } from 'marked'
 import hljs from 'highlight.js'
 import { debounce } from './utils/debounce.js'
 
-function slugify(text) {
+export function slugify(text) {
   return text
     .replace(/<[^>]+>/g, '')   // strip HTML tags
     .toLowerCase()
