@@ -63,17 +63,25 @@
   font-size: 0.88em;
 }
 
-/* Vertical indent grid — aligned to actual tab width (2 chars = 1 indent level) */
+/* Vertical indent grid — dashed lines aligned to tab width */
 #preview pre.code-grid-on {
-  background-image: repeating-linear-gradient(
-    to right,
-    transparent,
-    transparent calc(2ch - 1px),
-    color-mix(in srgb, var(--border-color) 60%, transparent) calc(2ch - 1px),
-    color-mix(in srgb, var(--border-color) 60%, transparent) calc(2ch)
-  ) !important;
-  background-size: 2ch 100%;
-  background-position: 16px 0;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 5px,
+      var(--code-bg) 5px,
+      var(--code-bg) 9px
+    ),
+    repeating-linear-gradient(
+      to right,
+      transparent 0,
+      transparent calc(2ch - 1px),
+      color-mix(in srgb, var(--border-color) 80%, transparent) calc(2ch - 1px),
+      color-mix(in srgb, var(--border-color) 80%, transparent) calc(2ch)
+    ) !important;
+  background-size: 100% 9px, 2ch 100% !important;
+  background-position: 0 0, 16px 0 !important;
 }
 
 #preview pre code {
@@ -84,15 +92,42 @@
 }
 
 /* Inline code */
-/* Checklist */
+/* Checklist — custom appearance so --checkbox-color works on disabled checkboxes */
 #preview input[type="checkbox"] {
-  accent-color: var(--checkbox-color);
-  width: 15px;
-  height: 15px;
-  margin-right: 6px;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 2px solid color-mix(in srgb, var(--checkbox-color) 55%, var(--border-color));
+  border-radius: 3px;
+  background: transparent;
   vertical-align: middle;
+  margin-right: 6px;
   cursor: default;
   opacity: 1;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+#preview input[type="checkbox"]:checked {
+  background: var(--checkbox-color);
+  border-color: var(--checkbox-color);
+}
+
+#preview input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: -1px;
+  width: 4px;
+  height: 8px;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(45deg);
 }
 
 #preview :not(pre) > code {

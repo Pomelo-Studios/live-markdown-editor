@@ -65,6 +65,8 @@
   --color-sidebar-label: #718096;
   --color-accent: #6d28d9;
   --color-accent-hover: #5b21b6;
+  --bg-sidebar-header: var(--color-accent);
+  --color-sidebar-header-text: #ffffff;
   --color-footer-bg: #f6f8fa;
   --color-footer-text: #6a737d;
   --border-color: #e1e4e8;
@@ -86,6 +88,8 @@
   --color-sidebar-label: #888888;
   --color-accent: #a78bfa;
   --color-accent-hover: #c4b5fd;
+  --bg-sidebar-header: #232323;
+  --color-sidebar-header-text: #e2e2e2;
   --color-footer-bg: #121212;
   --color-footer-text: #666666;
   --border-color: #2e2e2e;
