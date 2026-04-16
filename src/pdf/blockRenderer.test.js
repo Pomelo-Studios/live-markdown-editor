@@ -29,20 +29,19 @@ const S = {
 }
 
 describe('renderTokens', () => {
-  test('heading gets id on anchor item', () => {
+  test('heading carries id and correct fontSize', () => {
     const tokens = [{ type: 'heading', depth: 1, text: 'Hello World', tokens: [{ type: 'text', text: 'Hello World' }] }]
     const out = renderTokens(tokens, S)
-    // heading emits [anchor, textBlock]; anchor carries the id
+    // id is now on the heading block itself (no separate invisible anchor)
     expect(out[0].id).toBe('hello-world')
-    expect(out[0].fontSize).toBe(0.01)  // invisible anchor
+    expect(out[0].fontSize).toBe(S.headings[1].fontSize)
   })
 
-  test('heading depth 2 text block uses h2 style', () => {
+  test('heading depth 2 uses h2 style', () => {
     const tokens = [{ type: 'heading', depth: 2, text: 'Sub', tokens: [{ type: 'text', text: 'Sub' }] }]
     const out = renderTokens(tokens, S)
-    // textBlock is out[1]
-    expect(out[1].fontSize).toBe(S.headings[2].fontSize)
-    expect(out[1].bold).toBe(true)
+    expect(out[0].fontSize).toBe(S.headings[2].fontSize)
+    expect(out[0].bold).toBe(true)
   })
 
   test('hr produces a canvas line', () => {
