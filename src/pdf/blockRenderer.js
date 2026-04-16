@@ -87,20 +87,26 @@ function renderBlock(token, styles, isDark) {
         inner[inner.length - 1] = { ...inner[inner.length - 1], marginBottom: 0 }
       }
       // Single-column layout with a left vLine for a thin CSS-like border-left.
+      // Note: do NOT set `border` on the cell — it overrides the layout's line
+      // functions and would suppress the left vLine we want.
+      const cell = {
+        stack:  inner,
+        margin: [12, 6, 8, 6],
+      }
+      if (styles.blockquote.background) cell.fillColor = styles.blockquote.background
       return {
         table: {
           widths: ['*'],
-          body: [[{
-            border:    [false, false, false, false],
-            stack:     inner,
-            margin:    [12, 6, 8, 6],
-            fillColor: styles.blockquote.background || null,
-          }]],
+          body:   [[cell]],
         },
         layout: {
           vLineWidth: (i) => (i === 0 ? 3 : 0),
           hLineWidth: () => 0,
           vLineColor: () => styles.blockquote.border,
+          paddingLeft:  () => 0,
+          paddingRight: () => 0,
+          paddingTop:   () => 0,
+          paddingBottom:() => 0,
         },
         margin: [0, 6, 0, 6],
       }
@@ -225,11 +231,11 @@ function renderListItem(item, styles, isDark) {
     const box = checkboxCanvas(item.checked, styles.checkbox.color, styles.body.fontSize)
     return {
       columns: [
-        { ...box, width: box.width, margin: [0, 1, 4, 0] },
-        { text: inlineContent, fontSize: styles.body.fontSize },
+        { canvas: box.canvas, width: box.width, margin: [0, 2, 6, 0] },
+        { text: inlineContent, fontSize: styles.body.fontSize, width: '*' },
       ],
       columnGap:    0,
-      marginBottom: 3,
+      marginBottom: 5,
     }
   }
 

@@ -31,14 +31,11 @@ describe('renderInline', () => {
     expect(out[0].decoration).toBe('lineThrough')
   })
 
-  test('codespan is wrapped in a table for background padding', () => {
+  test('codespan uses inline code styles with background', () => {
     const out = renderInline([{ type: 'codespan', text: 'x++' }], S)
-    // table wrapper approach: fillColor on the cell, text node inside stack
-    expect(out[0].table).toBeDefined()
-    const cell = out[0].table.body[0][0]
-    expect(cell.fillColor).toBe(S.inlineCode.background)
-    expect(cell.stack[0].text).toBe('x++')
-    expect(cell.stack[0].color).toBe(S.inlineCode.color)
+    expect(out[0].text).toBe('x++')
+    expect(out[0].background).toBe(S.inlineCode.background)
+    expect(out[0].color).toBe(S.inlineCode.color)
   })
 
   test('external link sets link href', () => {
