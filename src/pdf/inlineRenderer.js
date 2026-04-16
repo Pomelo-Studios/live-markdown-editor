@@ -36,30 +36,18 @@ export function renderInline(tokens, styles) {
       case 'del':
         return applyStyle(renderInline(token.tokens, styles), { decoration: 'lineThrough', font: 'Roboto' })
 
-      case 'codespan': {
-        // Inline code wrapped in a single-cell table so fillColor padding is
-        // controlled via margin rather than relying on pdfmake's descender-space
-        // hack. pdfmake background on inline spans adds extra space at the bottom;
-        // this table approach gives consistent top/bottom padding.
-        const codeFs = styles.inlineCode ? (styles.body.fontSize * 0.85) : 10
-        const codeNode = {
-          text:    token.text,
-          fontSize: codeFs,
-          color:   styles.inlineCode.color,
+      // pdfmake limitation: table blocks cannot be embedded inside inline text
+      // arrays, so inline code uses the background property directly. This causes
+      // a known descender-space gap below the background rectangle (pdfmake adds
+      // space for font descenders). Accepted limitation — no workaround in pdfmake.
+      case 'codespan':
+        return {
+          text:       token.text,
+          fontSize:   styles.inlineCode ? (styles.body.fontSize * 0.85) : 10,
+          background: styles.inlineCode.background,
+          color:      styles.inlineCode.color,
           ...(styles.hasFiraCode ? { font: 'FiraCode' } : {}),
         }
-        return {
-          table: {
-            widths: ['auto'],
-            body: [[{
-              stack:     [codeNode],
-              fillColor: styles.inlineCode.background,
-              border:    [false, false, false, false],
-              margin:    [3, 1, 3, 1],
-            }]],
-          },
-        }
-      }
 
       case 'link': {
         // Apply link destination + color to every leaf so pdfmake renders them clickable.
