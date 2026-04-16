@@ -1,8 +1,11 @@
 // src/pdf/loader.js
 
-const PDFMAKE_CDN   = 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js'
-const VFS_FONTS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.min.js'
-const FIRA_CODE_CDN = 'https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/ttf/FiraCode-Regular.ttf'
+const PDFMAKE_CDN    = 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js'
+const VFS_FONTS_CDN  = 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.min.js'
+const FIRA_CODE_CDN  = 'https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/ttf/FiraCode-Regular.ttf'
+// vfs_fonts only ships Roboto-Medium (500). Fetch the real 700-weight TTF for
+// proper bold rendering. Falls back to Medium if the CDN is unreachable.
+const ROBOTO_BOLD_CDN = 'https://cdn.jsdelivr.net/npm/roboto-fontface@0.10.0/fonts/roboto/Roboto-Bold.ttf'
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
@@ -35,6 +38,7 @@ export async function getPdfMake() {
 
   // pdfmake browser API uses pdfMake.fonts global; initialising it (even to {})
   // causes it to ignore docDef.fonts, so Roboto must be registered here too.
+  // Start with Medium as bold fallback; upgraded below if Roboto-Bold loads.
   window.pdfMake.fonts = {
     Roboto: {
       normal:      'Roboto-Regular.ttf',
@@ -42,6 +46,17 @@ export async function getPdfMake() {
       italics:     'Roboto-Italic.ttf',
       bolditalics: 'Roboto-MediumItalic.ttf',
     },
+  }
+
+  // Load Roboto Bold (700) — vfs_fonts only ships Medium (500).
+  try {
+    const res = await fetch(ROBOTO_BOLD_CDN)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    window.pdfMake.vfs['Roboto-Bold.ttf'] = arrayBufferToBase64(await res.arrayBuffer())
+    window.pdfMake.fonts.Roboto.bold        = 'Roboto-Bold.ttf'
+    window.pdfMake.fonts.Roboto.bolditalics = 'Roboto-Bold.ttf'
+  } catch (err) {
+    console.warn('Roboto-Bold unavailable, falling back to Medium (500):', err.message)
   }
 
   window.pdfMake._firaCodeLoaded = false
