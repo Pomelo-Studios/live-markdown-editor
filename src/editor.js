@@ -22,9 +22,12 @@ A **live** markdown editor with _style customization_, *syntax highlighting*, an
 
 ## Features
 
-- Split pane: edit left, preview right — drag the divider to resize
-- Per-element font sizes and colors (H1–H6, body, links, code blocks)
-- Blockquote, inline code, and margin customization
+- Split pane editor
+  - Edit on the left, live preview updates on the right
+  - Drag the divider to resize each panel
+- Style customization
+  - Per-element font sizes and colors (H1–H6, body, links, code)
+  - Blockquote, inline code, and margin controls in the Style Panel
 - Dark / light theme with system preference detection
 - PDF export with inline preview before download
 
@@ -59,11 +62,11 @@ Use \`const\` instead of \`var\` for block-scoped variables. The \`--code-bg\` C
 
 | Feature         | Status  | Notes                  |
 |-----------------|---------|------------------------|
-| Live preview    | ✅ Done  | Debounced at 150ms     |
-| Style panel     | ✅ Done  | Per-element + global   |
-| PDF export      | ✅ Done  | Blob URL inline preview|
-| Dark theme      | ✅ Done  | System preference aware|
-| Mobile nav      | ✅ Done  | Bottom tab bar         |
+| Live preview    | ✓ Done  | Debounced at 150ms     |
+| Style panel     | ✓ Done  | Per-element + global   |
+| PDF export      | ✓ Done  | Blob URL inline preview|
+| Dark theme      | ✓ Done  | System preference aware|
+| Mobile nav      | ✓ Done  | Bottom tab bar         |
 
 ## Headings Demo
 

@@ -24,16 +24,17 @@ export function renderInline(tokens, styles) {
       case 'escape':
         return { text: token.text || '' }
 
-      // pdfmake doesn't cascade bold/italics/decoration through text arrays,
-      // so applyStyle pushes the formatting down to every leaf node.
+      // pdfmake doesn't cascade defaultStyle.font to inline items in text arrays,
+      // so bold/italic nodes must carry an explicit font name or pdfmake can't
+      // locate the correct font variant. 'Roboto' is the body font for all non-code text.
       case 'strong':
-        return applyStyle(renderInline(token.tokens, styles), { bold: true })
+        return applyStyle(renderInline(token.tokens, styles), { bold: true, font: 'Roboto' })
 
       case 'em':
-        return applyStyle(renderInline(token.tokens, styles), { italics: true })
+        return applyStyle(renderInline(token.tokens, styles), { italics: true, font: 'Roboto' })
 
       case 'del':
-        return applyStyle(renderInline(token.tokens, styles), { decoration: 'lineThrough' })
+        return applyStyle(renderInline(token.tokens, styles), { decoration: 'lineThrough', font: 'Roboto' })
 
       case 'codespan':
         return {

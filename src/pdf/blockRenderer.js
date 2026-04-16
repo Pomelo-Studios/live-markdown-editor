@@ -30,19 +30,21 @@ function renderBlock(token, styles, isDark) {
 
     case 'heading': {
       const hs = styles.headings[token.depth] || styles.headings[6]
-      // Push heading color + bold down to every leaf so pdfmake renders them correctly
-      const headingStyle = { bold: hs.bold, color: hs.color }
-      const items = propagateToLeaves(renderInline(token.tokens, styles), headingStyle)
-      return [
-        { text: '', id: slugify(token.text), fontSize: 0.01, margin: [0, 0, 0, 0] },
-        {
-          text:         items,
-          fontSize:     hs.fontSize,
-          bold:         hs.bold,
-          marginTop:    hs.marginTop,
-          marginBottom: hs.marginBottom,
-        },
-      ]
+      // font: 'Roboto' is required so pdfmake can look up the bold variant —
+      // it doesn't cascade defaultStyle.font into inline text-array items.
+      const items = propagateToLeaves(renderInline(token.tokens, styles), {
+        bold:  hs.bold,
+        color: hs.color,
+        font:  'Roboto',
+      })
+      return {
+        text:         items,
+        fontSize:     hs.fontSize,
+        bold:         hs.bold,
+        id:           slugify(token.text),
+        marginTop:    hs.marginTop,
+        marginBottom: hs.marginBottom,
+      }
     }
 
     case 'paragraph':
@@ -79,9 +81,14 @@ function renderBlock(token, styles, isDark) {
 
     case 'blockquote': {
       const inner = renderTokens(token.tokens, styles, isDark)
+      // Strip last child's marginBottom — it causes visible empty space at the
+      // bottom of the blockquote, making the text appear vertically off-center.
+      if (inner.length > 0) {
+        inner[inner.length - 1] = { ...inner[inner.length - 1], marginBottom: 0 }
+      }
       return {
         table: {
-          widths: [3, '*'],
+          widths: [2, '*'],
           body: [[
             {
               border:    [false, false, false, false],
@@ -92,7 +99,7 @@ function renderBlock(token, styles, isDark) {
             {
               border:    [false, false, false, false],
               stack:     inner,
-              margin:    [10, 4, 6, 4],
+              margin:    [10, 5, 6, 5],
               fillColor: styles.blockquote.background || null,
             },
           ]],
@@ -184,7 +191,7 @@ function renderListItem(item, styles, isDark) {
       : [{ text: textFallback }]
     return {
       text: [
-        { text: mark, color, bold: true },
+        { text: mark, color, bold: true, font: 'Roboto' },
         ...inlineContent,
       ],
       fontSize:     styles.body.fontSize,
