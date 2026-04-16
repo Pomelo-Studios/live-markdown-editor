@@ -81,28 +81,26 @@ function renderBlock(token, styles, isDark) {
 
     case 'blockquote': {
       const inner = renderTokens(token.tokens, styles, isDark)
-      // Strip last child's marginBottom — it causes visible empty space at the
-      // bottom of the blockquote, making the text appear vertically off-center.
+      // Strip first and last child margins so the background fills cleanly.
       if (inner.length > 0) {
+        inner[0] = { ...inner[0], marginTop: 0 }
         inner[inner.length - 1] = { ...inner[inner.length - 1], marginBottom: 0 }
       }
+      // Single-column layout with a left vLine for a thin CSS-like border-left.
       return {
         table: {
-          widths: [2, '*'],
-          body: [[
-            {
-              border:    [false, false, false, false],
-              fillColor: styles.blockquote.border,
-              text:      '',
-              margin:    [0, 0, 0, 0],
-            },
-            {
-              border:    [false, false, false, false],
-              stack:     inner,
-              margin:    [10, 5, 6, 5],
-              fillColor: styles.blockquote.background || null,
-            },
-          ]],
+          widths: ['*'],
+          body: [[{
+            border:    [false, false, false, false],
+            stack:     inner,
+            margin:    [12, 6, 8, 6],
+            fillColor: styles.blockquote.background || null,
+          }]],
+        },
+        layout: {
+          vLineWidth: (i) => (i === 0 ? 3 : 0),
+          hLineWidth: () => 0,
+          vLineColor: () => styles.blockquote.border,
         },
         margin: [0, 6, 0, 6],
       }
@@ -126,19 +124,21 @@ function renderBlock(token, styles, isDark) {
       const borderColor = styles.tableBorder || '#e1e4e8'
       const headerBg    = styles.tableHeader?.background || '#efefef'
       const headerRow = token.header.map((cell) => ({
-        text:      renderInline(cell.tokens, styles),
-        bold:      true,
-        color:     styles.headings[3]?.color || styles.body.color,
-        fillColor: headerBg,
-        fontSize:  styles.body.fontSize,
-        margin:    [6, 5, 6, 5],
+        text:               renderInline(cell.tokens, styles),
+        bold:               true,
+        color:              styles.headings[3]?.color || styles.body.color,
+        fillColor:          headerBg,
+        fontSize:           styles.body.fontSize,
+        margin:             [6, 5, 6, 5],
+        verticalAlignment:  'middle',
       }))
       const dataRows = token.rows.map((row) =>
         row.map((cell) => ({
-          text:     renderInline(cell.tokens, styles),
-          fontSize: styles.body.fontSize,
-          color:    styles.body.color,
-          margin:   [6, 4, 6, 4],
+          text:              renderInline(cell.tokens, styles),
+          fontSize:          styles.body.fontSize,
+          color:             styles.body.color,
+          margin:            [6, 4, 6, 4],
+          verticalAlignment: 'middle',
         }))
       )
       return {
@@ -179,22 +179,56 @@ function renderBlock(token, styles, isDark) {
   }
 }
 
+/**
+ * Canvas-drawn checkbox sized to match the body font.
+ * checked=true  → filled rect with a white ✓ stroke
+ * checked=false → outline rect only
+ */
+function checkboxCanvas(checked, color, fontSize) {
+  const size  = Math.round(fontSize * 0.75)
+  const x     = 0
+  const y     = 0
+  const r     = 1.5   // corner radius feel (square — pdfmake canvas has no rounding)
+  const shapes = [
+    {
+      type:      'rect',
+      x, y,
+      w: size, h: size,
+      r:         0,
+      lineWidth: 1,
+      lineColor: checked ? color : '#aaaaaa',
+      color:     checked ? color : null,
+    },
+  ]
+  if (checked) {
+    // Simple ✓ tick: two line segments
+    const p = size * 0.18
+    const mx = x + size * 0.22
+    const my = y + size * 0.52
+    shapes.push(
+      { type: 'line', x1: mx,            y1: my,            x2: mx + size * 0.22, y2: my + size * 0.26, lineWidth: 1.5, lineColor: '#ffffff' },
+      { type: 'line', x1: mx + size * 0.22, y1: my + size * 0.26, x2: mx + size * 0.52, y2: my - size * 0.2,  lineWidth: 1.5, lineColor: '#ffffff' },
+    )
+  }
+  return { canvas: shapes, width: size + 4, height: size }
+}
+
 function renderListItem(item, styles, isDark) {
   if (item.task) {
-    const mark  = item.checked ? '[x] ' : '[ ] '
-    const color = item.checked ? styles.checkbox.color : '#888888'
+    const color         = item.checked ? styles.checkbox.color : '#888888'
     const firstToken    = item.tokens?.[0]
     const inlineTokens  = firstToken?.tokens || []
     const textFallback  = firstToken?.text || ''
     const inlineContent = inlineTokens.length > 0
       ? renderInline(inlineTokens, styles)
       : [{ text: textFallback }]
+    const box = checkboxCanvas(item.checked, styles.checkbox.color, styles.body.fontSize)
     return {
-      text: [
-        { text: mark, color, bold: true, font: 'Roboto' },
-        ...inlineContent,
+      columns: [
+        { ...box, width: box.width, margin: [0, 1, 4, 0] },
+        { text: inlineContent, fontSize: styles.body.fontSize },
       ],
-      fontSize:     styles.body.fontSize,
+      columnGap:    0,
       marginBottom: 3,
     }
   }
