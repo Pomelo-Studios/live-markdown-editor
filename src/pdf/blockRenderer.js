@@ -129,18 +129,21 @@ function renderBlock(token, styles, isDark) {
     case 'table': {
       const borderColor = styles.tableBorder || '#e1e4e8'
       const headerBg    = styles.tableHeader?.background || '#efefef'
-      const headerRow = token.header.map((cell) => ({
-        text:               renderInline(cell.tokens, styles),
-        bold:               true,
-        color:              styles.headings[3]?.color || styles.body.color,
-        fillColor:          headerBg,
-        fontSize:           styles.body.fontSize,
-        margin:             [6, 5, 6, 5],
-        verticalAlignment:  'middle',
-      }))
+      const headerRow = token.header.map((cell) => {
+        const base = renderTableCell(cell.tokens, styles)
+        return {
+          ...base,
+          bold:              true,
+          color:             styles.headings[3]?.color || styles.body.color,
+          fillColor:         headerBg,
+          fontSize:          styles.body.fontSize,
+          margin:            [6, 5, 6, 5],
+          verticalAlignment: 'middle',
+        }
+      })
       const dataRows = token.rows.map((row) =>
         row.map((cell) => ({
-          text:              renderInline(cell.tokens, styles),
+          ...renderTableCell(cell.tokens, styles),
           fontSize:          styles.body.fontSize,
           color:             styles.body.color,
           margin:            [6, 4, 6, 4],
@@ -219,9 +222,27 @@ function checkboxCanvas(checked, color, fontSize) {
   return { canvas: shapes, width: size + 4, height: size }
 }
 
+/**
+ * Detects single-cell checkbox patterns like "[x]" or "[ ]" so table cells
+ * can render a canvas checkbox instead of literal bracket text.
+ */
+function renderTableCell(tokens, styles) {
+  if (tokens.length === 1 && tokens[0].type === 'text') {
+    const raw = (tokens[0].text || '').trim()
+    if (/^\[x\]$/i.test(raw) || /^\[✓\]$/.test(raw)) {
+      const box = checkboxCanvas(true, styles.checkbox.color, styles.body.fontSize)
+      return { stack: [{ canvas: box.canvas, width: box.width, height: box.height }], alignment: 'center' }
+    }
+    if (/^\[ \]$/.test(raw) || /^\[_\]$/.test(raw)) {
+      const box = checkboxCanvas(false, styles.checkbox.color, styles.body.fontSize)
+      return { stack: [{ canvas: box.canvas, width: box.width, height: box.height }], alignment: 'center' }
+    }
+  }
+  return { text: renderInline(tokens, styles) }
+}
+
 function renderListItem(item, styles, isDark) {
   if (item.task) {
-    const color         = item.checked ? styles.checkbox.color : '#888888'
     const firstToken    = item.tokens?.[0]
     const inlineTokens  = firstToken?.tokens || []
     const textFallback  = firstToken?.text || ''
@@ -231,8 +252,8 @@ function renderListItem(item, styles, isDark) {
     const box = checkboxCanvas(item.checked, styles.checkbox.color, styles.body.fontSize)
     return {
       columns: [
-        { canvas: box.canvas, width: box.width, margin: [0, 2, 6, 0] },
-        { text: inlineContent, fontSize: styles.body.fontSize, width: '*' },
+        { canvas: box.canvas, width: box.width, height: box.height, margin: [0, 2, 4, 0] },
+        { text: inlineContent, fontSize: styles.body.fontSize, color: styles.body.color, width: '*' },
       ],
       columnGap:    0,
       marginBottom: 5,
