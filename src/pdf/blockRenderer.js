@@ -243,9 +243,10 @@ function renderTableCell(tokens, styles) {
 
 function renderListItem(item, styles, isDark) {
   if (item.task) {
-    const firstToken    = item.tokens?.[0]
-    const inlineTokens  = firstToken?.tokens || []
-    const textFallback  = firstToken?.text || ''
+    // marked emits a leading {type:'checkbox'} token before the text token
+    const textToken     = item.tokens.find((t) => t.type === 'text' || t.type === 'paragraph')
+    const inlineTokens  = textToken?.tokens || []
+    const textFallback  = textToken?.text || item.text || ''
     const inlineContent = inlineTokens.length > 0
       ? renderInline(inlineTokens, styles)
       : [{ text: textFallback }]
