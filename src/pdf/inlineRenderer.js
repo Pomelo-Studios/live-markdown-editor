@@ -1,19 +1,5 @@
 // src/pdf/inlineRenderer.js
-
-/**
- * Apply a style as default to all items (item's own properties take priority).
- * Recurses into array `text` so nested formatting also gets the style.
- * Returns a flat array — pdfmake renders each item individually.
- */
-function applyStyle(items, style) {
-  return items.map(item => {
-    const merged = { ...style, ...item }
-    if (Array.isArray(merged.text)) {
-      merged.text = applyStyle(merged.text, style)
-    }
-    return merged
-  })
-}
+import { applyStyleToLeaves } from './styleUtils.js'
 
 export function renderInline(tokens, styles) {
   if (!tokens || tokens.length === 0) return []
@@ -28,13 +14,13 @@ export function renderInline(tokens, styles) {
       // so bold/italic nodes must carry an explicit font name or pdfmake can't
       // locate the correct font variant. 'Roboto' is the body font for all non-code text.
       case 'strong':
-        return applyStyle(renderInline(token.tokens, styles), { bold: true, font: 'Roboto' })
+        return applyStyleToLeaves(renderInline(token.tokens, styles), { bold: true, font: 'Roboto' })
 
       case 'em':
-        return applyStyle(renderInline(token.tokens, styles), { italics: true, font: 'Roboto' })
+        return applyStyleToLeaves(renderInline(token.tokens, styles), { italics: true, font: 'Roboto' })
 
       case 'del':
-        return applyStyle(renderInline(token.tokens, styles), { decoration: 'lineThrough', font: 'Roboto' })
+        return applyStyleToLeaves(renderInline(token.tokens, styles), { decoration: 'lineThrough', font: 'Roboto' })
 
       // pdfmake limitation: table blocks cannot be embedded inside inline text
       // arrays, so inline code uses the background property directly. This causes
@@ -55,7 +41,7 @@ export function renderInline(tokens, styles) {
         const dest = isAnchor
           ? { linkToDestination: token.href.slice(1) }
           : { link: token.href }
-        return applyStyle(renderInline(token.tokens, styles), {
+        return applyStyleToLeaves(renderInline(token.tokens, styles), {
           color:      styles.link.color,
           decoration: styles.link.decoration,
           ...dest,

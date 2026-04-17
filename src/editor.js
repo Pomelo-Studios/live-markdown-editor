@@ -4,6 +4,8 @@ import { debounce } from "./utils/debounce.js";
 
 const STORAGE_KEY = "editor-content";
 
+let _textarea = null;
+
 const DEFAULT_CONTENT = `# 📝 Welcome to Live Markdown Editor
 
 A **live** markdown editor with _style customization_, *syntax highlighting*, and PDF export. Select any text to reveal the **format toolbar** — bold, italic, ==highlight==, headings, links, tables and more. Use the **Style Panel** on the left to customize every element.
@@ -89,7 +91,8 @@ Use \`const\` instead of \`var\` for block-scoped variables. The \`--code-bg\` C
 `;
 
 export function initEditor(onInput) {
-  const textarea = document.getElementById("editor");
+  _textarea = document.getElementById("editor");
+  const textarea = _textarea;
 
   const saved = storageGet(STORAGE_KEY);
   textarea.value = saved ?? DEFAULT_CONTENT;
@@ -116,7 +119,7 @@ export function initEditor(onInput) {
 }
 
 export function scrollToLine(lineNumber) {
-  const textarea = document.getElementById("editor");
+  const textarea = _textarea;
   const lines = textarea.value.split("\n");
   const target = Math.max(0, Math.min(lineNumber - 1, lines.length - 1));
 
