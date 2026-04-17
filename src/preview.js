@@ -68,8 +68,7 @@ const BLOCK_TYPES = new Set([
   'heading', 'paragraph', 'code', 'blockquote', 'list', 'table', 'hr',
 ])
 
-function buildLineMap(markdown) {
-  const tokens = marked.lexer(markdown)
+function buildLineMap(tokens) {
   const entries = []
   let lineNum = 1
   for (const token of tokens) {
@@ -169,8 +168,9 @@ function initHover() {
 
 export function renderPreview(markdown) {
   _activeHoverBlock = null
-  const lineMap = buildLineMap(markdown)
-  const html = marked.parse(markdown)
+  const tokens  = marked.lexer(markdown)
+  const lineMap = buildLineMap(tokens)
+  const html    = marked.parser(tokens)
   const tmp = document.createElement('div')
   tmp.innerHTML = html
   annotateElements(tmp, lineMap)
