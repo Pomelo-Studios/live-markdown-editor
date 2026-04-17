@@ -40,4 +40,4 @@ Deploy the `dist/` folder to any static host (GitHub Pages, Netlify, Vercel).
 
 ## License
 
-MIT
+MIT License
