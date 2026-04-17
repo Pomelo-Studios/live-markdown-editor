@@ -68,10 +68,12 @@ const BUTTONS = [
   { action: 'table', label: '⊞', title: 'Insert table' },
 ]
 
-const TOC_BUTTON = { action: 'toc', label: '☰', title: 'Insert Table of Contents' }
+const TOC_BUTTON   = { action: 'toc',   label: '☰',  title: 'Insert Table of Contents' }
+const EMOJI_BUTTON = { action: 'emoji', label: '😊', title: 'Insert emoji' }
 
 function buildToolbarHTML(withToc) {
-  const parts = (withToc ? [...BUTTONS, null, TOC_BUTTON] : BUTTONS).map((b) =>
+  const extra = withToc ? [null, TOC_BUTTON, null, EMOJI_BUTTON] : []
+  const parts = [...BUTTONS, ...extra].map((b) =>
     b === null
       ? '<div class="fmt-sep"></div>'
       : `<button class="fmt-btn${b.cls ? ' ' + b.cls : ''}" data-action="${b.action}" title="${b.title}">${b.label}</button>`
@@ -84,6 +86,104 @@ function buildToolbarHTML(withToc) {
     </div>
   `)
   return parts.join('')
+}
+
+// ── Emoji picker ───────────────────────────────────────────────────────────────
+
+const EMOJI_CATS = [
+  { icon: '😊', name: 'Smileys', list: ['😀','😃','😄','😁','😂','🤣','😊','😇','🥰','😍','😘','😎','🤩','😋','😜','🤔','😔','😢','😭','😱','🥳','🤗','😴','🥺','😡','😈','🫠','🫡','🥸','🤯','🤭','🤫','🥹','😶‍🌫️'] },
+  { icon: '👋', name: 'Hands',   list: ['👋','✋','👌','✌️','🤞','👍','👎','👏','🙏','🤝','💪','☝️','👆','👇','👈','👉','🙌','✍️','🫂','🤜','🤛','🫶','🫵','🤲'] },
+  { icon: '❤️', name: 'Hearts',  list: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💗','💖','💘','💝','🫀','♥️','💟','❤️‍🔥','❤️‍🩹'] },
+  { icon: '✅', name: 'Symbols', list: ['✅','❌','⭕','❓','❗','⚠️','💯','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🔔','📢','💬','💭','🎯','⭐','🌟','✨','🔥','💥','🌈','🎊','🎉','🆕','🔝','🔜','🔛','🔚','🔙'] },
+  { icon: '📝', name: 'Work',    list: ['📝','✏️','📊','📈','📉','💡','🔧','⚙️','🛠','📌','📍','🗂','📁','📂','📚','📖','📜','🗒','🗓','📅','📆','⏰','⏱','🔍','🔎','📋','🏆','🥇','🎖','🏅','💼','🖥','📑','🗃','🗄','📮'] },
+  { icon: '🚀', name: 'Tech',    list: ['🚀','💻','🖥','📱','💾','📷','🎥','📺','🔋','🧪','🔬','🧬','🤖','👾','🎮','🕹','⌨️','🖱','📡','🔌','🧲','⚡','🌐','🔐','🔑','🛡','🔒','☁️','🌍','🛰','🔭','🧫'] },
+]
+
+let _emojiPicker   = null
+let _emojiActiveCat = 0
+let _emojiTextarea = null
+
+function buildEmojiPicker() {
+  const el = document.createElement('div')
+  el.className = 'emoji-picker'
+  el.setAttribute('aria-label', 'Emoji picker')
+
+  const tabs = document.createElement('div')
+  tabs.className = 'emoji-picker__tabs'
+  EMOJI_CATS.forEach((cat, i) => {
+    const btn = document.createElement('button')
+    btn.className = 'emoji-tab' + (i === 0 ? ' active' : '')
+    btn.dataset.cat = String(i)
+    btn.title = cat.name
+    btn.textContent = cat.icon
+    tabs.appendChild(btn)
+  })
+
+  const grid = document.createElement('div')
+  grid.className = 'emoji-picker__grid'
+
+  el.appendChild(tabs)
+  el.appendChild(grid)
+  document.body.appendChild(el)
+
+  el.addEventListener('mousedown', (e) => {
+    e.preventDefault() // keep textarea focus
+
+    const tab = e.target.closest('.emoji-tab')
+    if (tab) {
+      _emojiActiveCat = parseInt(tab.dataset.cat)
+      el.querySelectorAll('.emoji-tab').forEach((t) => t.classList.toggle('active', t === tab))
+      renderEmojiGrid(el, _emojiActiveCat)
+      return
+    }
+
+    const emojiBtn = e.target.closest('.emoji-btn')
+    if (emojiBtn && _emojiTextarea) {
+      insertEmoji(_emojiTextarea, emojiBtn.textContent)
+      closeEmojiPicker()
+    }
+  })
+
+  return el
+}
+
+function renderEmojiGrid(picker, catIdx) {
+  const grid = picker.querySelector('.emoji-picker__grid')
+  grid.innerHTML = EMOJI_CATS[catIdx].list
+    .map((e) => `<button class="emoji-btn" title="${e}">${e}</button>`)
+    .join('')
+}
+
+function openEmojiPicker(anchorBtn) {
+  if (!_emojiPicker) _emojiPicker = buildEmojiPicker()
+  renderEmojiGrid(_emojiPicker, _emojiActiveCat)
+
+  const rect   = anchorBtn.getBoundingClientRect()
+  const w      = 280
+  const margin = 6
+  let left = rect.left + rect.width / 2 - w / 2
+  left = Math.max(margin, Math.min(left, window.innerWidth - w - margin))
+  _emojiPicker.style.left = left + 'px'
+  _emojiPicker.style.top  = (rect.bottom + 6) + 'px'
+  _emojiPicker.classList.add('active')
+}
+
+function closeEmojiPicker() {
+  _emojiPicker?.classList.remove('active')
+}
+
+function toggleEmojiPicker(anchorBtn) {
+  if (_emojiPicker?.classList.contains('active')) {
+    closeEmojiPicker()
+  } else {
+    openEmojiPicker(anchorBtn)
+  }
+}
+
+function insertEmoji(textarea, emoji) {
+  const { selectionStart: s, selectionEnd: e, value: v } = textarea
+  pushUndo(textarea)
+  applyChange(textarea, v.slice(0, s) + emoji + v.slice(e), s + [...emoji].length, s + [...emoji].length)
 }
 
 // ── Text manipulation ──────────────────────────────────────────────────────────
@@ -274,6 +374,10 @@ function wireToolbar(container, textarea, { hideOnAction = false } = {}) {
 
     const btn = e.target.closest('[data-action]')
     if (btn) {
+      if (btn.dataset.action === 'emoji') {
+        toggleEmojiPicker(btn)
+        return
+      }
       handleAction(btn.dataset.action, textarea, container)
       if (hideOnAction && btn.dataset.action !== 'link') {
         hideFloating()
@@ -344,6 +448,7 @@ function hideFloating() {
 
 export function initFormatToolbar() {
   const textarea = document.getElementById('editor')
+  _emojiTextarea = textarea
 
   // Seed undo stack with initial content
   _undo = [snapshotState(textarea)]
@@ -370,10 +475,15 @@ export function initFormatToolbar() {
     showFloating(rect.left + rect.width / 2, rect.top + 36)
   })
 
-  // Hide floating on outside click
+  // Hide floating / emoji picker on outside click
   document.addEventListener('mousedown', (e) => {
     if (!floatingEl.contains(e.target) && e.target !== textarea) {
       hideFloating()
+    }
+    if (_emojiPicker?.classList.contains('active')
+        && !_emojiPicker.contains(e.target)
+        && e.target.dataset?.action !== 'emoji') {
+      closeEmojiPicker()
     }
   })
 
