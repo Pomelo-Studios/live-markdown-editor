@@ -2,15 +2,9 @@
 import { marked } from 'marked'
 import hljs from 'highlight.js'
 import { debounce } from './utils/debounce.js'
+import { slugify } from './utils/slugify.js'
 
-export function slugify(text) {
-  return text
-    .replace(/<[^>]+>/g, '')   // strip HTML tags
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '')  // remove special chars
-    .trim()
-    .replace(/\s+/g, '-')
-}
+export { slugify }
 
 marked.use({
   breaks: true,

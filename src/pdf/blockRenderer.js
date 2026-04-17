@@ -1,5 +1,5 @@
 // src/pdf/blockRenderer.js
-import { slugify }        from '../preview.js'
+import { slugify }        from '../utils/slugify.js'
 import { renderInline }   from './inlineRenderer.js'
 import { highlightCode }  from './syntaxHighlight.js'
 

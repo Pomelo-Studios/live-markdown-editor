@@ -1,5 +1,6 @@
 // src/formatToolbar.js
 import { debounce } from './utils/debounce.js'
+import { slugify } from './utils/slugify.js'
 
 // ── Undo / Redo stack ──────────────────────────────────────────────────────────
 
@@ -269,15 +270,6 @@ function applyLink(textarea, url) {
   const sel = v.slice(s, e) || 'link text'
   const rep = `[${sel}](${url})`
   applyChange(textarea, v.slice(0, s) + rep + v.slice(e), s, s + rep.length)
-}
-
-function slugify(text) {
-  return text
-    .replace(/<[^>]+>/g, '')
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
 }
 
 function applyToc(textarea) {
