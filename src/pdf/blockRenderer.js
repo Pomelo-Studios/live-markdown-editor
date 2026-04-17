@@ -1,6 +1,6 @@
 // src/pdf/blockRenderer.js
 import { slugify }        from '../preview.js'
-import { renderInline, stripEmoji } from './inlineRenderer.js'
+import { renderInline }   from './inlineRenderer.js'
 import { highlightCode }  from './syntaxHighlight.js'
 
 /**
@@ -183,7 +183,7 @@ function renderBlock(token, styles, isDark) {
 
     default:
       return token.text
-        ? { text: stripEmoji(token.text), fontSize: styles.body.fontSize, color: styles.body.color }
+        ? { text: token.text, fontSize: styles.body.fontSize, color: styles.body.color }
         : null
   }
 }
@@ -246,7 +246,7 @@ function renderListItem(item, styles, isDark) {
     // marked emits a leading {type:'checkbox'} token before the text token
     const textToken     = item.tokens.find((t) => t.type === 'text' || t.type === 'paragraph')
     const inlineTokens  = textToken?.tokens || []
-    const textFallback  = stripEmoji(textToken?.text || item.text || '')
+    const textFallback  = textToken?.text || item.text || ''
     const inlineContent = inlineTokens.length > 0
       ? renderInline(inlineTokens, styles)
       : [{ text: textFallback }]
