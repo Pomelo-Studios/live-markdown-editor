@@ -1,16 +1,5 @@
 // src/pdf/inlineRenderer.js
 
-// Roboto doesn't include colored emoji glyphs. \p{Emoji_Presentation} targets only
-// emoji that render as colored pictures by default (🚀, ✅, 😊…) while leaving
-// text-rendered symbols like ✓, →, ★ intact.
-export function stripEmoji(str) {
-  if (!str) return str
-  return str
-    .replace(/\p{Emoji_Presentation}/gu, '')
-    .replace(/[\uFE0F\u200D]/g, '') // variation selector + ZWJ leftovers
-    .replace(/ {2,}/g, ' ')
-}
-
 /**
  * Apply a style as default to all items (item's own properties take priority).
  * Recurses into array `text` so nested formatting also gets the style.
@@ -33,7 +22,7 @@ export function renderInline(tokens, styles) {
     switch (token.type) {
       case 'text':
       case 'escape':
-        return { text: stripEmoji(token.text || '') }
+        return { text: (token.text || '').replace(/\p{Extended_Pictographic}/gu, '').replace(/\uFE0F|\u200D/g, '') }
 
       // pdfmake doesn't cascade defaultStyle.font to inline items in text arrays,
       // so bold/italic nodes must carry an explicit font name or pdfmake can't
