@@ -289,8 +289,11 @@ export function initStylePanel() {
     const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' })
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
-    a.href = url; a.download = 'markdown-editor-styles.json'; a.click()
-    URL.revokeObjectURL(url)
+    a.href = url; a.download = 'markdown-editor-styles.json'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 100)
   })
 
   // ── Import settings ──
