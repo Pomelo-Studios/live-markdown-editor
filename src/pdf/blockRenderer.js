@@ -1,23 +1,8 @@
 // src/pdf/blockRenderer.js
-import { slugify }        from '../utils/slugify.js'
-import { renderInline }   from './inlineRenderer.js'
-import { highlightCode }  from './syntaxHighlight.js'
-
-/**
- * Apply a style as defaults to all items (item's own props take priority).
- * Recurses into array `text` to handle nested inline nodes.
- * Used to push heading bold/color down to leaf nodes because pdfmake
- * doesn't cascade block-level styles through text arrays reliably.
- */
-function propagateToLeaves(items, style) {
-  return items.map(item => {
-    const merged = { ...style, ...item }
-    if (Array.isArray(merged.text)) {
-      merged.text = propagateToLeaves(merged.text, style)
-    }
-    return merged
-  })
-}
+import { slugify }             from '../utils/slugify.js'
+import { renderInline }        from './inlineRenderer.js'
+import { highlightCode }       from './syntaxHighlight.js'
+import { applyStyleToLeaves }  from './styleUtils.js'
 
 /** Recursively render any token array (block-level). */
 export function renderTokens(tokens, styles, isDark = false) {
@@ -32,7 +17,7 @@ function renderBlock(token, styles, isDark) {
       const hs = styles.headings[token.depth] || styles.headings[6]
       // font: 'Roboto' is required so pdfmake can look up the bold variant —
       // it doesn't cascade defaultStyle.font into inline text-array items.
-      const items = propagateToLeaves(renderInline(token.tokens, styles), {
+      const items = applyStyleToLeaves(renderInline(token.tokens, styles), {
         bold:  hs.bold,
         color: hs.color,
         font:  'Roboto',
