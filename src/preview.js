@@ -34,6 +34,14 @@ marked.use({
       const id = slugify(text)
       return `<h${depth} id="${id}">${text}</h${depth}>\n`
     },
+    tablecell({ text, header, align }) {
+      const tag = header ? 'th' : 'td'
+      const alignAttr = align ? ` style="text-align:${align}"` : ''
+      const content = text
+        .replace(/\[x\]/gi, '<input type="checkbox" class="table-check" checked>')
+        .replace(/\[ \]/g, '<input type="checkbox" class="table-check">')
+      return `<${tag}${alignAttr}>${content}</${tag}>\n`
+    },
   },
 })
 

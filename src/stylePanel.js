@@ -115,6 +115,8 @@ function saveSettings() {
   })
   const gridToggle = document.getElementById('code-grid-toggle')
   settings['--code-grid-on'] = gridToggle.checked
+  const underlineToggle = document.getElementById('link-underline-toggle')
+  settings['--link-underline-on'] = underlineToggle.checked
   storageSet(STORAGE_KEY, settings)
   saveCustomized()
 }
@@ -142,6 +144,11 @@ function loadSettings() {
     if (settings['--code-grid-on'] !== undefined) {
       gridToggle.checked = settings['--code-grid-on']
       document.documentElement.style.setProperty('--code-grid', settings['--code-grid-on'] ? 'block' : 'none')
+    }
+    const underlineToggle = document.getElementById('link-underline-toggle')
+    if (settings['--link-underline-on'] !== undefined) {
+      underlineToggle.checked = settings['--link-underline-on']
+      document.documentElement.style.setProperty('--link-underline', settings['--link-underline-on'] ? 'underline' : 'none')
     }
   }
 
@@ -171,7 +178,7 @@ function resetSection(sectionName) {
   const sectionMap = {
     headings:      ['--h1-size','--h1-color','--h2-size','--h2-color','--h3-size','--h3-color','--h4-size','--h4-color','--h5-size','--h5-color','--h6-size','--h6-color'],
     body:          ['--body-size','--body-color'],
-    links:         ['--link-color'],
+    links:         ['--link-color', '--link-underline'],
     checklist:     ['--checkbox-color'],
     blockquote:    ['--blockquote-border','--blockquote-bg'],
     code:          ['--code-bg','--code-color'],
@@ -188,6 +195,11 @@ function resetSection(sectionName) {
     gridToggle.checked = false
     document.documentElement.style.setProperty('--code-grid', 'none')
   }
+  if (sectionName === 'links') {
+    const underlineToggle = document.getElementById('link-underline-toggle')
+    underlineToggle.checked = true
+    document.documentElement.style.removeProperty('--link-underline')
+  }
   saveSettings()
   refreshCodeGrid()
 }
@@ -197,6 +209,9 @@ function resetAll() {
   const gridToggle = document.getElementById('code-grid-toggle')
   gridToggle.checked = false
   document.documentElement.style.setProperty('--code-grid', 'none')
+  const underlineToggle = document.getElementById('link-underline-toggle')
+  underlineToggle.checked = true
+  document.documentElement.style.removeProperty('--link-underline')
   saveSettings()
   refreshCodeGrid()
 }
@@ -240,6 +255,13 @@ export function initStylePanel() {
     document.documentElement.style.setProperty('--code-grid', gridToggle.checked ? 'block' : 'none')
     saveSettings()
     refreshCodeGrid()
+  })
+
+  // Link underline toggle
+  const underlineToggle = document.getElementById('link-underline-toggle')
+  underlineToggle.addEventListener('change', () => {
+    document.documentElement.style.setProperty('--link-underline', underlineToggle.checked ? 'underline' : 'none')
+    saveSettings()
   })
 
   // Section reset buttons

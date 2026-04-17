@@ -44,7 +44,7 @@ export function readPdfStyles() {
 
     link: {
       color:      get('--link-color') || '#6d28d9',
-      decoration: 'underline',
+      decoration: (get('--link-underline') || 'underline') === 'none' ? undefined : 'underline',
     },
 
     code: {

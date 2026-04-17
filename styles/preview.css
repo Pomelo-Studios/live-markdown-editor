@@ -19,7 +19,8 @@
 #preview ul, #preview ol { margin: 0.75em 0; padding-left: 1.5em; }
 #preview li { margin: 0.25em 0; }
 
-#preview a { color: var(--link-color); text-decoration: underline; text-underline-offset: 2px; }
+#preview a { color: var(--link-color); text-decoration: var(--link-underline, underline); text-underline-offset: 2px; }
+#preview table input[type="checkbox"].table-check { pointer-events: none; accent-color: var(--checkbox-color); width: 14px; height: 14px; vertical-align: middle; }
 #preview a:hover { opacity: 0.8; }
 
 #preview hr {
