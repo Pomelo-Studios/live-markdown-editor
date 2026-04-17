@@ -1,5 +1,6 @@
 // src/formatToolbar.js
 import { debounce } from './utils/debounce.js'
+import { slugify } from './utils/slugify.js'
 
 // ── Undo / Redo stack ──────────────────────────────────────────────────────────
 
@@ -183,7 +184,8 @@ function toggleEmojiPicker(anchorBtn) {
 function insertEmoji(textarea, emoji) {
   const { selectionStart: s, selectionEnd: e, value: v } = textarea
   pushUndo(textarea)
-  applyChange(textarea, v.slice(0, s) + emoji + v.slice(e), s + [...emoji].length, s + [...emoji].length)
+  const emojiLen = [...emoji].length
+  applyChange(textarea, v.slice(0, s) + emoji + v.slice(e), s + emojiLen, s + emojiLen)
 }
 
 // ── Text manipulation ──────────────────────────────────────────────────────────
@@ -271,15 +273,6 @@ function applyLink(textarea, url) {
   applyChange(textarea, v.slice(0, s) + rep + v.slice(e), s, s + rep.length)
 }
 
-function slugify(text) {
-  return text
-    .replace(/<[^>]+>/g, '')
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-}
-
 function applyToc(textarea) {
   const { value: v, selectionStart: s } = textarea
   const headings = []
@@ -288,7 +281,7 @@ function applyToc(textarea) {
     if (m) headings.push({ level: m[1].length, text: m[2].trim() })
   }
   if (!headings.length) return
-  const minLevel = Math.min(...headings.map((h) => h.level))
+  const minLevel = headings.reduce((min, h) => Math.min(min, h.level), Infinity)
   const tocLines = ['## Table of Contents', '']
   for (const h of headings) {
     const indent = '  '.repeat(h.level - minLevel)
@@ -522,7 +515,9 @@ export function initFormatToolbar() {
     const a = document.createElement('a')
     a.href = url
     a.download = base + '.md'
+    document.body.appendChild(a)
     a.click()
-    URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 100)
   })
 }

@@ -48,22 +48,24 @@ export async function getPdfMake() {
     },
   }
 
-  // Load Roboto Bold (700) — vfs_fonts only ships Medium (500).
-  try {
-    const res = await fetch(ROBOTO_BOLD_CDN)
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    window.pdfMake.vfs['Roboto-Bold.woff'] = arrayBufferToBase64(await res.arrayBuffer())
+  // Load Roboto Bold (700) and FiraCode in parallel — both are independent fetches.
+  // vfs_fonts only ships Roboto-Medium (500); we upgrade to true Bold here.
+  const [robotoResult, firaResult] = await Promise.allSettled([
+    fetch(ROBOTO_BOLD_CDN).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.arrayBuffer() }),
+    fetch(FIRA_CODE_CDN).then((r)   => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.arrayBuffer() }),
+  ])
+
+  if (robotoResult.status === 'fulfilled') {
+    window.pdfMake.vfs['Roboto-Bold.woff'] = arrayBufferToBase64(robotoResult.value)
     window.pdfMake.fonts.Roboto.bold        = 'Roboto-Bold.woff'
     window.pdfMake.fonts.Roboto.bolditalics = 'Roboto-Bold.woff'
-  } catch (err) {
-    console.warn('Roboto-Bold unavailable, falling back to Medium (500):', err.message)
+  } else {
+    console.warn('Roboto-Bold unavailable, falling back to Medium (500):', robotoResult.reason?.message)
   }
 
   window.pdfMake._firaCodeLoaded = false
-  try {
-    const res = await fetch(FIRA_CODE_CDN)
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    window.pdfMake.vfs['FiraCode-Regular.ttf'] = arrayBufferToBase64(await res.arrayBuffer())
+  if (firaResult.status === 'fulfilled') {
+    window.pdfMake.vfs['FiraCode-Regular.ttf'] = arrayBufferToBase64(firaResult.value)
     window.pdfMake.fonts.FiraCode = {
       normal:      'FiraCode-Regular.ttf',
       bold:        'FiraCode-Regular.ttf',
@@ -71,8 +73,8 @@ export async function getPdfMake() {
       bolditalics: 'FiraCode-Regular.ttf',
     }
     window.pdfMake._firaCodeLoaded = true
-  } catch (err) {
-    console.warn('FiraCode font unavailable, code blocks will use Roboto:', err.message)
+  } else {
+    console.warn('FiraCode font unavailable, code blocks will use Roboto:', firaResult.reason?.message)
   }
 
   window.pdfMake._mdEditorReady = true

@@ -12,6 +12,8 @@ export function initResizer() {
   let startX = 0
   let startEditorWidth = 0
   let splitWidth = 0
+  let _rafId = null
+  let _pendingPercent = null
 
   resizer.addEventListener('mousedown', (e) => {
     dragging = true
@@ -26,15 +28,20 @@ export function initResizer() {
   document.addEventListener('mousemove', (e) => {
     if (!dragging) return
     const delta = e.clientX - startX
-    let newEditorPercent = ((startEditorWidth + delta) / splitWidth) * 100
-    newEditorPercent = Math.max(MIN_PERCENT, Math.min(MAX_PERCENT, newEditorPercent))
-    editorPane.style.flexBasis = `${newEditorPercent}%`
-    previewPane.style.flexBasis = `${100 - newEditorPercent}%`
+    _pendingPercent = Math.max(MIN_PERCENT, Math.min(MAX_PERCENT, ((startEditorWidth + delta) / splitWidth) * 100))
+    if (!_rafId) {
+      _rafId = requestAnimationFrame(() => {
+        editorPane.style.flexBasis  = `${_pendingPercent}%`
+        previewPane.style.flexBasis = `${100 - _pendingPercent}%`
+        _rafId = null
+      })
+    }
   })
 
   document.addEventListener('mouseup', () => {
     if (!dragging) return
     dragging = false
+    if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null }
     resizer.classList.remove('resizing')
     document.body.style.userSelect = ''
     document.body.style.cursor = ''
