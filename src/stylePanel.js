@@ -66,8 +66,8 @@ function hexToRgb(hex) {
 }
 
 function getAlphaValue(varName) {
-  const slider = document.querySelector(`.alpha-slider[data-alpha-for="${varName}"]`)
-  return slider ? parseInt(slider.value) : 100
+  const inp = document.querySelector(`.rgba-input[data-var-for="${varName}"][data-channel="A"]`)
+  return inp ? parseInt(inp.value) : 100
 }
 
 function applyColorVar(name, hex, alpha) {
@@ -80,65 +80,89 @@ function applyColorVar(name, hex, alpha) {
   }
 }
 
-function updateSliderBg(varName, hex) {
-  const slider = document.querySelector(`.alpha-slider[data-alpha-for="${varName}"]`)
-  if (!slider || !isValidHex(hex)) return
+function updateRgbaInputs(varName, hex, alpha) {
+  if (!isValidHex(hex)) return
   const { r, g, b } = hexToRgb(hex)
-  slider.style.backgroundImage = [
-    `linear-gradient(to right, rgba(${r},${g},${b},0), rgba(${r},${g},${b},1))`,
-    'linear-gradient(45deg, #bbb 25%, transparent 25%)',
-    'linear-gradient(-45deg, #bbb 25%, transparent 25%)',
-    'linear-gradient(45deg, transparent 75%, #bbb 75%)',
-    'linear-gradient(-45deg, transparent 75%, #bbb 75%)',
-  ].join(',')
+  const q = (ch) => document.querySelector(`.rgba-input[data-var-for="${varName}"][data-channel="${ch}"]`)
+  const R = q('R'); if (R) R.value = r
+  const G = q('G'); if (G) G.value = g
+  const B = q('B'); if (B) B.value = b
+  const A = q('A'); if (A) A.value = alpha
 }
 
 // ── Sync non-customized inputs from cascade (theme defaults) ──────────────────
 
 function syncInputsFromCascade() {
   getCSSVarInputs().forEach((input) => {
-    if (customizedVars.has(input.dataset.var)) return  // user set this — don't touch
+    if (customizedVars.has(input.dataset.var)) return
     const val = computedVar(input.dataset.var, input.type === 'number')
     if (!val) return
-    if (input.type === 'color' && !isValidHex(val)) return  // skip rgba values
-    if (input.value === val) return                          // already correct
+    if (input.type === 'color' && !isValidHex(val)) return
+    if (input.value === val) return
     input.value = val
-    if (input.type === 'color') {
-      const hexInput = document.querySelector(`[data-hex-for="${input.dataset.var}"]`)
-      if (hexInput) hexInput.value = val
-    }
+    if (input.type === 'color') updateRgbaInputs(input.dataset.var, val, 100)
   })
 }
 
-// ── Hex input sync ────────────────────────────────────────────────────────────
+// ── RGBA inputs ───────────────────────────────────────────────────────────────
 
-function wireHexInput(colorInput, hexInput) {
-  const name = colorInput.dataset.var
+function injectRgbaInputs() {
+  const saved = storageGet(STORAGE_KEY) || {}
 
-  colorInput.addEventListener('input', () => {
-    hexInput.value = colorInput.value
-    updateSliderBg(name, colorInput.value)
-    applyColorVar(name, colorInput.value, getAlphaValue(name))
-    customizedVars.add(name)
-    saveSettings()
-    refreshCodeGrid()
-  })
+  document.querySelectorAll('input[type="color"][data-var]').forEach((colorInput) => {
+    const name = colorInput.dataset.var
+    const row  = colorInput.closest('.color-row')
+    if (!row) return
 
-  hexInput.addEventListener('input', () => {
-    const val = hexInput.value.startsWith('#') ? hexInput.value : '#' + hexInput.value
-    if (isValidHex(val)) {
-      colorInput.value = val
-      hexInput.value = val
-      updateSliderBg(name, val)
-      applyColorVar(name, val, getAlphaValue(name))
+    const savedAlpha = saved[name + '--alpha'] ?? 100
+    const { r, g, b } = hexToRgb(colorInput.value)
+    const channels = [
+      { ch: 'R', val: r,          min: 0, max: 255 },
+      { ch: 'G', val: g,          min: 0, max: 255 },
+      { ch: 'B', val: b,          min: 0, max: 255 },
+      { ch: 'A', val: savedAlpha, min: 0, max: 100 },
+    ]
+
+    const inputs = {}
+    channels.forEach(({ ch, val, min, max }) => {
+      const wrap = document.createElement('div')
+      wrap.className = 'rgba-field'
+      const inp = document.createElement('input')
+      inp.type = 'number'; inp.className = 'rgba-input'
+      inp.min = String(min); inp.max = String(max); inp.value = String(val)
+      inp.dataset.varFor = name; inp.dataset.channel = ch
+      const lbl = document.createElement('span')
+      lbl.className = 'rgba-label'; lbl.textContent = ch
+      wrap.appendChild(inp); wrap.appendChild(lbl)
+      row.appendChild(wrap)
+      inputs[ch] = inp
+    })
+
+    function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, parseInt(v) || 0)) }
+
+    function syncFromRgba() {
+      const r = clamp(inputs.R.value, 0, 255), g = clamp(inputs.G.value, 0, 255)
+      const b = clamp(inputs.B.value, 0, 255), a = clamp(inputs.A.value, 0, 100)
+      inputs.R.value = r; inputs.G.value = g; inputs.B.value = b; inputs.A.value = a
+      const hex = '#' + [r, g, b].map((n) => n.toString(16).padStart(2, '0')).join('')
+      colorInput.value = hex
+      applyColorVar(name, hex, a)
       customizedVars.add(name)
       saveSettings()
-      refreshCodeGrid()
     }
-  })
 
-  hexInput.addEventListener('blur', () => {
-    if (!isValidHex(hexInput.value)) hexInput.value = colorInput.value
+    Object.values(inputs).forEach((inp) => inp.addEventListener('input', syncFromRgba))
+
+    // Native color swatch → sync RGB (keep A)
+    colorInput.addEventListener('input', () => {
+      const { r, g, b } = hexToRgb(colorInput.value)
+      inputs.R.value = r; inputs.G.value = g; inputs.B.value = b
+      applyColorVar(name, colorInput.value, parseInt(inputs.A.value))
+      customizedVars.add(name)
+      saveSettings()
+    })
+
+    if (savedAlpha < 100) applyColorVar(name, colorInput.value, savedAlpha)
   })
 }
 
@@ -178,10 +202,6 @@ function loadSettings() {
       if (saved === undefined) return
       input.value = saved
       applyVar(name, saved)
-      if (input.type === 'color') {
-        const hexInput = document.querySelector(`[data-hex-for="${name}"]`)
-        if (hexInput) hexInput.value = saved
-      }
     })
 
     const gridToggle = document.getElementById('code-grid-toggle')
@@ -212,18 +232,7 @@ function resetInput(input) {
   if (!val) return
   if (input.type === 'color' && !isValidHex(val)) return
   input.value = val
-  if (input.type === 'color') {
-    const hexInput = document.querySelector(`[data-hex-for="${name}"]`)
-    if (hexInput) hexInput.value = val
-    // Reset alpha to 100%
-    const alphaSlider = document.querySelector(`.alpha-slider[data-alpha-for="${name}"]`)
-    if (alphaSlider) {
-      alphaSlider.value = 100
-      const display = alphaSlider.nextElementSibling
-      if (display) display.textContent = '100%'
-      updateSliderBg(name, val)
-    }
-  }
+  if (input.type === 'color') updateRgbaInputs(name, val, 100)
 }
 
 function resetSection(sectionName) {
@@ -295,56 +304,8 @@ export function initStylePanel() {
     }
   })
 
-  // Color pickers
-  document.querySelectorAll('input[type="color"][data-var]').forEach((colorInput) => {
-    const hexInput = document.querySelector(`[data-hex-for="${colorInput.dataset.var}"]`)
-    if (hexInput) wireHexInput(colorInput, hexInput)
-  })
-
-  // Alpha sliders — injected dynamically so HTML stays clean
-  const savedForAlpha = storageGet(STORAGE_KEY) || {}
-  document.querySelectorAll('input[type="color"][data-var]').forEach((colorInput) => {
-    const name    = colorInput.dataset.var
-    const row     = colorInput.closest('.color-row')
-    if (!row) return
-
-    const wrap    = document.createElement('div')
-    wrap.className = 'alpha-wrap'
-
-    const slider  = document.createElement('input')
-    slider.type   = 'range'
-    slider.className = 'alpha-slider'
-    slider.setAttribute('data-alpha-for', name)
-    slider.min    = '0'
-    slider.max    = '100'
-    slider.step   = '1'
-
-    const display = document.createElement('span')
-    display.className = 'alpha-display'
-
-    // Restore saved alpha (default 100)
-    const savedAlpha = savedForAlpha[name + '--alpha'] ?? 100
-    slider.value     = savedAlpha
-    display.textContent = savedAlpha + '%'
-
-    wrap.appendChild(slider)
-    wrap.appendChild(display)
-    row.appendChild(wrap)
-
-    // Init gradient background
-    updateSliderBg(name, colorInput.value)
-
-    // Apply saved alpha immediately
-    if (savedAlpha < 100) applyColorVar(name, colorInput.value, savedAlpha)
-
-    slider.addEventListener('input', () => {
-      display.textContent = slider.value + '%'
-      updateSliderBg(name, colorInput.value)
-      applyColorVar(name, colorInput.value, parseInt(slider.value))
-      customizedVars.add(name)
-      saveSettings()
-    })
-  })
+  // RGBA inputs (inject + wire for all color pickers)
+  injectRgbaInputs()
 
   // Code grid toggle
   const gridToggle = document.getElementById('code-grid-toggle')
@@ -376,8 +337,8 @@ export function initStylePanel() {
   document.getElementById('export-settings-btn')?.addEventListener('click', () => {
     const settings = {}
     getCSSVarInputs().forEach((input) => { settings[input.dataset.var] = input.value })
-    document.querySelectorAll('.alpha-slider').forEach((s) => {
-      settings[s.dataset.alphaFor + '--alpha'] = parseInt(s.value)
+    document.querySelectorAll('input[type="color"][data-var]').forEach((c) => {
+      settings[c.dataset.var + '--alpha'] = getAlphaValue(c.dataset.var)
     })
     settings['--code-grid-on'] = document.getElementById('code-grid-toggle').checked
     const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' })
@@ -408,18 +369,12 @@ export function initStylePanel() {
             if (hexInput) hexInput.value = saved
           }
         })
-        // Apply imported alpha values
-        document.querySelectorAll('.alpha-slider').forEach((slider) => {
-          const name  = slider.dataset.alphaFor
+        // Apply imported alpha + update RGBA inputs
+        document.querySelectorAll('input[type="color"][data-var]').forEach((colorInput) => {
+          const name  = colorInput.dataset.var
           const alpha = settings[name + '--alpha'] ?? 100
-          slider.value = alpha
-          const display = slider.nextElementSibling
-          if (display) display.textContent = alpha + '%'
-          const colorInput = document.querySelector(`input[type="color"][data-var="${name}"]`)
-          if (colorInput) {
-            updateSliderBg(name, colorInput.value)
-            applyColorVar(name, colorInput.value, alpha)
-          }
+          updateRgbaInputs(name, colorInput.value, alpha)
+          applyColorVar(name, colorInput.value, alpha)
         })
         const gt = document.getElementById('code-grid-toggle')
         if (settings['--code-grid-on'] !== undefined) {
