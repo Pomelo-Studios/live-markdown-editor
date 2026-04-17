@@ -1,6 +1,7 @@
 // src/stylePanel.js
 import { storageGet, storageSet } from './utils/storage.js'
 import { refreshCodeGrid } from './preview.js'
+import { debounce } from './utils/debounce.js'
 
 const STORAGE_KEY        = 'style-settings'
 const STORAGE_KEY_CUSTOM = 'style-customized'
@@ -33,8 +34,10 @@ function saveCustomized() {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+let _cssVarInputsCache = null
 function getCSSVarInputs() {
-  return document.querySelectorAll('[data-var]')
+  if (!_cssVarInputsCache) _cssVarInputsCache = [...document.querySelectorAll('[data-var]')]
+  return _cssVarInputsCache
 }
 
 function applyVar(name, value) {
@@ -60,10 +63,12 @@ function isValidHex(str) {
 // ── Sync non-customized inputs from cascade (theme defaults) ──────────────────
 
 function syncInputsFromCascade() {
+  const computed = getComputedStyle(document.documentElement)
   getCSSVarInputs().forEach((input) => {
     if (customizedVars.has(input.dataset.var)) return  // user set this — don't touch
-    const val = computedVar(input.dataset.var, input.type === 'number')
-    if (!val) return
+    const raw = computed.getPropertyValue(input.dataset.var).trim()
+    if (!raw) return
+    const val = input.type === 'number' ? parseFloat(raw).toString() : raw
     if (input.type === 'color' && !isValidHex(val)) return  // skip rgba values
     if (input.value === val) return                          // already correct
     input.value = val
@@ -232,13 +237,14 @@ export function initStylePanel() {
   loadSettings()
   initThemeObserver()
 
-  // Number inputs
+  // Number inputs — apply immediately, debounce the localStorage write
+  const saveSettingsDebounced = debounce(saveSettings, 300)
   getCSSVarInputs().forEach((input) => {
     if (input.type === 'number') {
       input.addEventListener('input', () => {
         applyVar(input.dataset.var, input.value)
         customizedVars.add(input.dataset.var)
-        saveSettings()
+        saveSettingsDebounced()
       })
     }
   })
