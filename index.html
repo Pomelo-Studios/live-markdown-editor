@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/styles/preview.css" />
   <link rel="stylesheet" href="/styles/sidebar.css" />
   <link rel="stylesheet" href="/styles/mobile.css" />
+  <link rel="stylesheet" href="/styles/formatToolbar.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" id="hljs-theme" />
 </head>
 <body>
@@ -17,11 +18,16 @@
     <aside id="sidebar" class="sidebar sidebar--open">
       <div class="sidebar__header">
         <span class="sidebar__title">Style Panel</span>
-        <button id="sidebar-toggle" class="sidebar__toggle" aria-label="Toggle sidebar">◀</button>
+        <button id="sidebar-toggle" class="sidebar__toggle" aria-label="Toggle sidebar"><span class="sidebar__toggle-icon"></span></button>
       </div>
 
       <div class="sidebar__content" id="sidebar-content">
-        <button class="sidebar__reset-all" id="reset-all-btn">↺ Reset all to defaults</button>
+        <button class="sidebar__reset-all" id="reset-all-btn"><span class="sidebar__reset-icon">↺</span> Reset all to defaults</button>
+        <div class="sidebar__io-row">
+          <button class="sidebar__io-btn" id="export-settings-btn">⬆ Export</button>
+          <button class="sidebar__io-btn" id="import-settings-btn">⬇ Import</button>
+          <input type="file" id="import-settings-file" accept=".json" style="display:none" />
+        </div>
 
         <!-- Headings -->
         <section class="panel-section">
@@ -77,6 +83,30 @@
               <input type="text" class="hex-input" data-hex-for="--h4-color" value="#444444" maxlength="7" />
             </div>
           </label>
+          <label>
+            <span class="label-text">H5 size</span>
+            <input type="number" data-var="--h5-size" data-default="16" value="16" min="10" max="72" />
+            <span class="unit-label">px</span>
+          </label>
+          <label>
+            <span class="label-text">H5 color</span>
+            <div class="color-row">
+              <input type="color" data-var="--h5-color" data-default="#555555" value="#555555" />
+              <input type="text" class="hex-input" data-hex-for="--h5-color" value="#555555" maxlength="7" />
+            </div>
+          </label>
+          <label>
+            <span class="label-text">H6 size</span>
+            <input type="number" data-var="--h6-size" data-default="14" value="14" min="10" max="72" />
+            <span class="unit-label">px</span>
+          </label>
+          <label>
+            <span class="label-text">H6 color</span>
+            <div class="color-row">
+              <input type="color" data-var="--h6-color" data-default="#666666" value="#666666" />
+              <input type="text" class="hex-input" data-hex-for="--h6-color" value="#666666" maxlength="7" />
+            </div>
+          </label>
         </section>
 
         <hr class="panel-divider" />
@@ -114,6 +144,27 @@
             <div class="color-row">
               <input type="color" data-var="--link-color" data-default="#6d28d9" value="#6d28d9" />
               <input type="text" class="hex-input" data-hex-for="--link-color" value="#6d28d9" maxlength="7" />
+            </div>
+          </label>
+          <label class="label--row">
+            <span class="label-text">Underline</span>
+            <input type="checkbox" id="link-underline-toggle" checked />
+          </label>
+        </section>
+
+        <hr class="panel-divider" />
+
+        <!-- Checklist -->
+        <section class="panel-section">
+          <div class="panel-section__header">
+            <h3 class="panel-section__title">Checklist</h3>
+            <button class="panel-section__reset" data-reset-section="checklist" title="Reset checklist">↺</button>
+          </div>
+          <label>
+            <span class="label-text">Check color</span>
+            <div class="color-row">
+              <input type="color" data-var="--checkbox-color" data-default="#6d28d9" value="#6d28d9" />
+              <input type="text" class="hex-input" data-hex-for="--checkbox-color" value="#6d28d9" maxlength="7" />
             </div>
           </label>
         </section>
@@ -196,6 +247,25 @@
 
         <hr class="panel-divider" />
 
+        <hr class="panel-divider" />
+
+        <!-- Page Background -->
+        <section class="panel-section">
+          <div class="panel-section__header">
+            <h3 class="panel-section__title">Page Background</h3>
+            <button class="panel-section__reset" data-reset-section="background" title="Reset background">↺</button>
+          </div>
+          <label>
+            <span class="label-text">Background</span>
+            <div class="color-row">
+              <input type="color" data-var="--bg-preview" data-default="#ffffff" value="#ffffff" />
+              <input type="text" class="hex-input" data-hex-for="--bg-preview" value="#ffffff" maxlength="7" />
+            </div>
+          </label>
+        </section>
+
+        <hr class="panel-divider" />
+
         <!-- Margins -->
         <section class="panel-section">
           <div class="panel-section__header">
@@ -235,6 +305,7 @@
         <span class="toolbar__brand">Live Markdown Editor</span>
         <div class="toolbar__actions">
           <button id="pdf-export-btn">PDF Export</button>
+          <button id="md-download-btn">⬇ MD</button>
           <button id="theme-toggle" aria-label="Toggle theme">🌙</button>
         </div>
       </header>
@@ -242,6 +313,7 @@
       <!-- Editor / Preview split -->
       <div id="split">
         <div id="editor-pane">
+          <div id="fmt-toolbar-fixed"></div>
           <textarea id="editor" spellcheck="false" placeholder="Write markdown here..."></textarea>
         </div>
         <div id="resizer" title="Drag to resize"></div>
@@ -262,9 +334,9 @@
 
   <!-- Mobile bottom tab bar -->
   <nav id="mobile-tabs" class="mobile-tabs" aria-label="Mobile navigation">
-    <button class="mobile-tab mobile-tab--active" data-pane="editor">✏ Düzenle</button>
-    <button class="mobile-tab" data-pane="preview">👁 Önizle</button>
-    <button class="mobile-tab" data-pane="style">⚙ Stil</button>
+    <button class="mobile-tab mobile-tab--active" data-pane="editor">✏ Edit</button>
+    <button class="mobile-tab" data-pane="preview">👁 Preview</button>
+    <button class="mobile-tab" data-pane="style">⚙ Style</button>
   </nav>
 
   <script type="module" src="/src/main.js"></script>

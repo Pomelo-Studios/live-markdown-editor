@@ -1,0 +1,292 @@
+/* styles/formatToolbar.css */
+
+/* ── Theme vars — only values that don't exist in the global system ── */
+:root {
+  --fmt-shadow: 0 8px 28px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.08);
+  --fmt-border-clr: rgba(0, 0, 0, 0.1);
+  --fmt-btn-color: #444444;
+  --fmt-btn-hover-bg: rgba(0, 0, 0, 0.06);
+  --fmt-btn-active-bg: rgba(109, 40, 217, 0.12);
+  --fmt-sep-color: rgba(0, 0, 0, 0.1);
+  --fmt-input-bg: rgba(0, 0, 0, 0.04);
+  --fmt-input-border: rgba(0, 0, 0, 0.14);
+  --fmt-input-color: #333333;
+  --fmt-cancel-hover: #dc2626;
+}
+
+[data-theme="dark"] {
+  --fmt-shadow: 0 8px 28px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.3);
+  --fmt-border-clr: rgba(255, 255, 255, 0.1);
+  --fmt-btn-color: #e2e2e2;
+  --fmt-btn-hover-bg: rgba(255, 255, 255, 0.1);
+  --fmt-btn-active-bg: rgba(167, 139, 250, 0.2);
+  --fmt-sep-color: rgba(255, 255, 255, 0.12);
+  --fmt-input-bg: rgba(255, 255, 255, 0.07);
+  --fmt-input-border: rgba(255, 255, 255, 0.14);
+  --fmt-input-color: #e0e0f0;
+  --fmt-cancel-hover: #f97583;
+}
+
+/* ── Floating popup toolbar ── */
+.format-toolbar {
+  position: fixed;
+  display: none;
+  align-items: center;
+  gap: 1px;
+  padding: 5px 8px;
+  background: var(--bg-toolbar);
+  border: 1px solid var(--fmt-border-clr);
+  border-radius: 10px;
+  box-shadow: var(--fmt-shadow);
+  z-index: 200;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Arrow pointing down (toolbar above selection) */
+.format-toolbar::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: var(--fmt-arrow-x, 50%);
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--bg-toolbar);
+  pointer-events: none;
+}
+
+/* Arrow pointing up (toolbar below selection) */
+.format-toolbar.fmt-below::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: var(--bg-toolbar);
+}
+
+/* ── Fixed ribbon toolbar ── */
+#fmt-toolbar-fixed {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 10px;
+  background: var(--bg-toolbar);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  user-select: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+#fmt-toolbar-fixed::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Shared button styles ── */
+.fmt-btn {
+  background: transparent;
+  border: none;
+  color: var(--fmt-btn-color);
+  cursor: pointer;
+  padding: 4px 7px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  line-height: 1;
+  transition:
+    background 0.12s,
+    color 0.12s;
+  white-space: nowrap;
+  min-width: 24px;
+  text-align: center;
+}
+
+.fmt-btn:hover {
+  background: var(--fmt-btn-hover-bg);
+  color: var(--color-accent);
+}
+
+.fmt-btn:active {
+  background: var(--fmt-btn-active-bg);
+}
+
+/* Fixed toolbar overrides: use toolbar text color */
+#fmt-toolbar-fixed .fmt-btn {
+  color: var(--color-toolbar-text);
+}
+#fmt-toolbar-fixed .fmt-btn:hover {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.fmt-btn--italic {
+  font-style: italic;
+}
+.fmt-btn--strike {
+  text-decoration: line-through;
+  font-weight: 400;
+}
+.fmt-btn--mono {
+  font-family: "Fira Code", monospace;
+  font-weight: 400;
+}
+
+.fmt-hl {
+  background: #fef08a;
+  color: #713f12;
+  padding: 0 2px;
+  border-radius: 2px;
+  font-weight: 700;
+  font-size: 10px;
+}
+
+[data-theme="dark"] .fmt-hl {
+  background: rgba(254, 240, 138, 0.25);
+  color: #fde68a;
+}
+
+/* ── Separator ── */
+.fmt-sep {
+  flex-shrink: 0;
+  width: 1px;
+  height: 16px;
+  background: var(--fmt-sep-color);
+  margin: 0 4px;
+}
+
+#fmt-toolbar-fixed .fmt-sep {
+  background: var(--border-color);
+}
+
+/* ── Link input group ── */
+.fmt-link-group {
+  display: none;
+  align-items: center;
+  gap: 4px;
+}
+
+.fmt-link-group.active {
+  display: flex;
+}
+
+.fmt-url-input {
+  width: 190px;
+  padding: 4px 8px;
+  background: var(--fmt-input-bg);
+  border: 1px solid var(--fmt-input-border);
+  border-radius: 5px;
+  color: var(--fmt-input-color);
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.fmt-url-input:focus {
+  border-color: var(--color-accent);
+}
+
+.fmt-url-input::placeholder {
+  color: var(--color-sidebar-label, #888);
+  opacity: 0.7;
+}
+
+.fmt-url-ok,
+.fmt-url-cancel {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1;
+  transition:
+    color 0.12s,
+    background 0.12s;
+}
+
+.fmt-url-ok {
+  color: var(--color-sidebar-label, #888);
+}
+.fmt-url-cancel {
+  color: var(--color-sidebar-label, #888);
+}
+
+.fmt-url-ok:hover {
+  color: var(--color-accent);
+  background: var(--fmt-btn-hover-bg);
+}
+.fmt-url-cancel:hover {
+  color: var(--fmt-cancel-hover);
+  background: var(--fmt-btn-hover-bg);
+}
+
+/* ── Emoji picker ── */
+.emoji-picker {
+  position: fixed;
+  z-index: 500;
+  width: 280px;
+  display: none;
+  flex-direction: column;
+  background: var(--bg-toolbar);
+  border: 1px solid var(--fmt-border-clr);
+  border-radius: 10px;
+  box-shadow: var(--fmt-shadow);
+  overflow: hidden;
+  user-select: none;
+}
+
+.emoji-picker.active {
+  display: flex;
+}
+
+.emoji-picker__tabs {
+  display: flex;
+  gap: 2px;
+  padding: 6px 8px 5px;
+  border-bottom: 1px solid var(--fmt-border-clr);
+  flex-shrink: 0;
+}
+
+.emoji-tab {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 5px;
+  border-radius: 6px;
+  font-size: 16px;
+  line-height: 1;
+  transition: background 0.1s;
+  flex: 1;
+  text-align: center;
+}
+
+.emoji-tab:hover  { background: var(--fmt-btn-hover-bg); }
+.emoji-tab.active { background: var(--fmt-btn-active-bg); }
+
+.emoji-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 1px;
+  padding: 6px 8px 8px;
+  max-height: 208px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--fmt-border-clr) transparent;
+}
+
+.emoji-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 5px 3px;
+  border-radius: 5px;
+  font-size: 18px;
+  line-height: 1;
+  text-align: center;
+  transition: background 0.1s, transform 0.1s;
+}
+
+.emoji-btn:hover {
+  background: var(--fmt-btn-hover-bg);
+  transform: scale(1.2);
+}
