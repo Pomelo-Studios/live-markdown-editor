@@ -237,6 +237,64 @@
   align-items: center;
   gap: 6px;
   flex: 1;
+  flex-wrap: wrap;
+}
+
+/* ── Alpha slider ── */
+.alpha-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.alpha-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 7px;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  /* background set via JS (gradient + checkerboard) */
+  background-size: 6px 6px;
+  background-position: 0 0, 0 3px, 3px -3px, -3px 0;
+}
+
+.alpha-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--bg-editor);
+  border: 2px solid var(--border-color);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  transition: border-color 0.15s;
+}
+
+.alpha-slider::-webkit-slider-thumb:hover {
+  border-color: var(--color-accent);
+}
+
+.alpha-slider::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--bg-editor);
+  border: 2px solid var(--border-color);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+
+.alpha-display {
+  font-size: 11px;
+  color: var(--color-sidebar-label);
+  min-width: 30px;
+  text-align: right;
+  font-family: 'Fira Code', monospace;
 }
 
 .panel-section input[type="color"] {

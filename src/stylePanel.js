@@ -57,6 +57,42 @@ function isValidHex(str) {
   return /^#[0-9a-fA-F]{6}$/.test(str)
 }
 
+function hexToRgb(hex) {
+  return {
+    r: parseInt(hex.slice(1, 3), 16),
+    g: parseInt(hex.slice(3, 5), 16),
+    b: parseInt(hex.slice(5, 7), 16),
+  }
+}
+
+function getAlphaValue(varName) {
+  const slider = document.querySelector(`.alpha-slider[data-alpha-for="${varName}"]`)
+  return slider ? parseInt(slider.value) : 100
+}
+
+function applyColorVar(name, hex, alpha) {
+  if (!isValidHex(hex)) return
+  if (alpha >= 100) {
+    document.documentElement.style.setProperty(name, hex)
+  } else {
+    const { r, g, b } = hexToRgb(hex)
+    document.documentElement.style.setProperty(name, `rgba(${r},${g},${b},${(alpha / 100).toFixed(2)})`)
+  }
+}
+
+function updateSliderBg(varName, hex) {
+  const slider = document.querySelector(`.alpha-slider[data-alpha-for="${varName}"]`)
+  if (!slider || !isValidHex(hex)) return
+  const { r, g, b } = hexToRgb(hex)
+  slider.style.backgroundImage = [
+    `linear-gradient(to right, rgba(${r},${g},${b},0), rgba(${r},${g},${b},1))`,
+    'linear-gradient(45deg, #bbb 25%, transparent 25%)',
+    'linear-gradient(-45deg, #bbb 25%, transparent 25%)',
+    'linear-gradient(45deg, transparent 75%, #bbb 75%)',
+    'linear-gradient(-45deg, transparent 75%, #bbb 75%)',
+  ].join(',')
+}
+
 // ── Sync non-customized inputs from cascade (theme defaults) ──────────────────
 
 function syncInputsFromCascade() {
@@ -77,10 +113,13 @@ function syncInputsFromCascade() {
 // ── Hex input sync ────────────────────────────────────────────────────────────
 
 function wireHexInput(colorInput, hexInput) {
+  const name = colorInput.dataset.var
+
   colorInput.addEventListener('input', () => {
     hexInput.value = colorInput.value
-    applyVar(colorInput.dataset.var, colorInput.value)
-    customizedVars.add(colorInput.dataset.var)
+    updateSliderBg(name, colorInput.value)
+    applyColorVar(name, colorInput.value, getAlphaValue(name))
+    customizedVars.add(name)
     saveSettings()
     refreshCodeGrid()
   })
@@ -90,8 +129,9 @@ function wireHexInput(colorInput, hexInput) {
     if (isValidHex(val)) {
       colorInput.value = val
       hexInput.value = val
-      applyVar(colorInput.dataset.var, val)
-      customizedVars.add(colorInput.dataset.var)
+      updateSliderBg(name, val)
+      applyColorVar(name, val, getAlphaValue(name))
+      customizedVars.add(name)
       saveSettings()
       refreshCodeGrid()
     }
@@ -111,6 +151,10 @@ function saveSettings() {
     // Save customized color vars + all size/margin vars (theme-independent)
     if (customizedVars.has(name) || name.includes('-size') || name.includes('-margin')) {
       settings[name] = input.value
+    }
+    // Always save alpha so it survives page reload
+    if (input.type === 'color') {
+      settings[name + '--alpha'] = getAlphaValue(name)
     }
   })
   const gridToggle = document.getElementById('code-grid-toggle')
@@ -171,6 +215,14 @@ function resetInput(input) {
   if (input.type === 'color') {
     const hexInput = document.querySelector(`[data-hex-for="${name}"]`)
     if (hexInput) hexInput.value = val
+    // Reset alpha to 100%
+    const alphaSlider = document.querySelector(`.alpha-slider[data-alpha-for="${name}"]`)
+    if (alphaSlider) {
+      alphaSlider.value = 100
+      const display = alphaSlider.nextElementSibling
+      if (display) display.textContent = '100%'
+      updateSliderBg(name, val)
+    }
   }
 }
 
@@ -249,6 +301,51 @@ export function initStylePanel() {
     if (hexInput) wireHexInput(colorInput, hexInput)
   })
 
+  // Alpha sliders — injected dynamically so HTML stays clean
+  const savedForAlpha = storageGet(STORAGE_KEY) || {}
+  document.querySelectorAll('input[type="color"][data-var]').forEach((colorInput) => {
+    const name    = colorInput.dataset.var
+    const row     = colorInput.closest('.color-row')
+    if (!row) return
+
+    const wrap    = document.createElement('div')
+    wrap.className = 'alpha-wrap'
+
+    const slider  = document.createElement('input')
+    slider.type   = 'range'
+    slider.className = 'alpha-slider'
+    slider.setAttribute('data-alpha-for', name)
+    slider.min    = '0'
+    slider.max    = '100'
+    slider.step   = '1'
+
+    const display = document.createElement('span')
+    display.className = 'alpha-display'
+
+    // Restore saved alpha (default 100)
+    const savedAlpha = savedForAlpha[name + '--alpha'] ?? 100
+    slider.value     = savedAlpha
+    display.textContent = savedAlpha + '%'
+
+    wrap.appendChild(slider)
+    wrap.appendChild(display)
+    row.appendChild(wrap)
+
+    // Init gradient background
+    updateSliderBg(name, colorInput.value)
+
+    // Apply saved alpha immediately
+    if (savedAlpha < 100) applyColorVar(name, colorInput.value, savedAlpha)
+
+    slider.addEventListener('input', () => {
+      display.textContent = slider.value + '%'
+      updateSliderBg(name, colorInput.value)
+      applyColorVar(name, colorInput.value, parseInt(slider.value))
+      customizedVars.add(name)
+      saveSettings()
+    })
+  })
+
   // Code grid toggle
   const gridToggle = document.getElementById('code-grid-toggle')
   gridToggle.addEventListener('change', () => {
@@ -279,6 +376,9 @@ export function initStylePanel() {
   document.getElementById('export-settings-btn')?.addEventListener('click', () => {
     const settings = {}
     getCSSVarInputs().forEach((input) => { settings[input.dataset.var] = input.value })
+    document.querySelectorAll('.alpha-slider').forEach((s) => {
+      settings[s.dataset.alphaFor + '--alpha'] = parseInt(s.value)
+    })
     settings['--code-grid-on'] = document.getElementById('code-grid-toggle').checked
     const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' })
     const url  = URL.createObjectURL(blob)
@@ -306,6 +406,19 @@ export function initStylePanel() {
           if (input.type === 'color') {
             const hexInput = document.querySelector(`[data-hex-for="${input.dataset.var}"]`)
             if (hexInput) hexInput.value = saved
+          }
+        })
+        // Apply imported alpha values
+        document.querySelectorAll('.alpha-slider').forEach((slider) => {
+          const name  = slider.dataset.alphaFor
+          const alpha = settings[name + '--alpha'] ?? 100
+          slider.value = alpha
+          const display = slider.nextElementSibling
+          if (display) display.textContent = alpha + '%'
+          const colorInput = document.querySelector(`input[type="color"][data-var="${name}"]`)
+          if (colorInput) {
+            updateSliderBg(name, colorInput.value)
+            applyColorVar(name, colorInput.value, alpha)
           }
         })
         const gt = document.getElementById('code-grid-toggle')
