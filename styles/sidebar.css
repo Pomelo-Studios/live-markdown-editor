@@ -235,47 +235,8 @@
 .color-row {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   flex: 1;
-}
-
-.hex-input { display: none; }
-
-/* ── RGBA inputs ── */
-.rgba-field {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-}
-
-.rgba-input {
-  width: 34px;
-  padding: 3px 2px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: var(--bg-editor);
-  color: var(--color-sidebar-text);
-  font-size: 11px;
-  font-family: 'Fira Code', monospace;
-  text-align: center;
-  -moz-appearance: textfield;
-  transition: border-color 0.15s;
-}
-
-.rgba-input::-webkit-inner-spin-button,
-.rgba-input::-webkit-outer-spin-button { -webkit-appearance: none; }
-
-.rgba-input:focus {
-  outline: none;
-  border-color: var(--color-accent);
-}
-
-.rgba-label {
-  font-size: 9px;
-  color: var(--color-sidebar-label);
-  font-weight: 700;
-  letter-spacing: 0.4px;
 }
 
 .panel-section input[type="color"] {
