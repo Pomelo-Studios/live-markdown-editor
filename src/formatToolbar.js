@@ -184,7 +184,8 @@ function toggleEmojiPicker(anchorBtn) {
 function insertEmoji(textarea, emoji) {
   const { selectionStart: s, selectionEnd: e, value: v } = textarea
   pushUndo(textarea)
-  applyChange(textarea, v.slice(0, s) + emoji + v.slice(e), s + [...emoji].length, s + [...emoji].length)
+  const emojiLen = [...emoji].length
+  applyChange(textarea, v.slice(0, s) + emoji + v.slice(e), s + emojiLen, s + emojiLen)
 }
 
 // ── Text manipulation ──────────────────────────────────────────────────────────
@@ -280,7 +281,7 @@ function applyToc(textarea) {
     if (m) headings.push({ level: m[1].length, text: m[2].trim() })
   }
   if (!headings.length) return
-  const minLevel = Math.min(...headings.map((h) => h.level))
+  const minLevel = headings.reduce((min, h) => Math.min(min, h.level), Infinity)
   const tocLines = ['## Table of Contents', '']
   for (const h of headings) {
     const indent = '  '.repeat(h.level - minLevel)
