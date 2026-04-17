@@ -22,7 +22,7 @@ export function renderInline(tokens, styles) {
     switch (token.type) {
       case 'text':
       case 'escape':
-        return { text: (token.text || '').replace(/\p{Extended_Pictographic}/gu, '').replace(/\uFE0F|\u200D/g, '') }
+        return { text: (token.text || '').replace(/\p{Emoji_Presentation}|\p{Extended_Pictographic}/gu, '').trimStart() || '' }
 
       // pdfmake doesn't cascade defaultStyle.font to inline items in text arrays,
       // so bold/italic nodes must carry an explicit font name or pdfmake can't
