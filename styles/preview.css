@@ -12,12 +12,15 @@
 #preview h2 { font-size: var(--h2-size); color: var(--h2-color); margin: 0.5em 0 0.3em; font-weight: 600; }
 #preview h3 { font-size: var(--h3-size); color: var(--h3-color); margin: 0.5em 0 0.3em; font-weight: 600; }
 #preview h4 { font-size: var(--h4-size); color: var(--h4-color); margin: 0.5em 0 0.3em; font-weight: 600; }
+#preview h5 { font-size: var(--h5-size); color: var(--h5-color); margin: 0.5em 0 0.3em; font-weight: 600; }
+#preview h6 { font-size: var(--h6-size); color: var(--h6-color); margin: 0.5em 0 0.3em; font-weight: 600; }
 
 #preview p { margin: 0.75em 0; }
 #preview ul, #preview ol { margin: 0.75em 0; padding-left: 1.5em; }
 #preview li { margin: 0.25em 0; }
 
-#preview a { color: var(--link-color); text-decoration: underline; text-underline-offset: 2px; }
+#preview a { color: var(--link-color); text-decoration: var(--link-underline, underline); text-underline-offset: 2px; }
+#preview table input[type="checkbox"].table-check { pointer-events: none; accent-color: var(--checkbox-color); width: 14px; height: 14px; vertical-align: middle; }
 #preview a:hover { opacity: 0.8; }
 
 #preview hr {
@@ -44,7 +47,7 @@
   text-align: left;
 }
 #preview th {
-  background: var(--code-bg);
+  background: var(--table-header-bg);
   color: var(--h3-color);
   font-weight: 600;
 }
@@ -59,28 +62,75 @@
   margin: 1em 0;
   position: relative;
   box-shadow: var(--shadow-sm);
+  font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+  font-size: 0.88em;
 }
 
-/* Vertical indent grid */
+/* Vertical indent grid — dashed lines aligned to tab width */
 #preview pre.code-grid-on {
-  background-image: repeating-linear-gradient(
-    to right,
-    transparent,
-    transparent calc(2ch - 1px),
-    color-mix(in srgb, var(--border-color) 60%, transparent) calc(2ch - 1px),
-    color-mix(in srgb, var(--border-color) 60%, transparent) calc(2ch)
-  ) !important;
-  background-size: 2ch 100%;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 5px,
+      var(--code-bg) 5px,
+      var(--code-bg) 9px
+    ),
+    repeating-linear-gradient(
+      to right,
+      transparent 0,
+      transparent calc(2ch - 1px),
+      color-mix(in srgb, var(--border-color) 80%, transparent) calc(2ch - 1px),
+      color-mix(in srgb, var(--border-color) 80%, transparent) calc(2ch)
+    ) !important;
+  background-size: 100% 9px, 2ch 100% !important;
+  background-position: 0 0, 16px 0 !important;
 }
 
 #preview pre code {
   background: transparent !important;
-  font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
-  font-size: 0.88em;
+  font-family: inherit;
+  font-size: 1em;
   line-height: 1.6;
 }
 
 /* Inline code */
+/* Checklist — custom appearance so --checkbox-color works on disabled checkboxes */
+#preview input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: calc(var(--body-size) * 0.875);
+  height: calc(var(--body-size) * 0.875);
+  border: 2px solid color-mix(in srgb, var(--checkbox-color) 55%, var(--border-color));
+  border-radius: 3px;
+  background: transparent;
+  vertical-align: middle;
+  margin-right: 6px;
+  cursor: default;
+  opacity: 1;
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+#preview input[type="checkbox"]:checked {
+  background: var(--checkbox-color);
+  border-color: var(--checkbox-color);
+}
+
+#preview input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--body-size) * 0.22);
+  height: calc(var(--body-size) * 0.42);
+  border-right: calc(var(--body-size) * 0.1) solid #fff;
+  border-bottom: calc(var(--body-size) * 0.1) solid #fff;
+  transform: translate(-50%, -62%) rotate(45deg);
+}
+
 #preview :not(pre) > code {
   background: var(--inline-code-bg) !important;
   color: var(--inline-code-color);
@@ -88,4 +138,49 @@
   border-radius: 4px;
   font-family: 'Fira Code', 'Cascadia Code', monospace;
   font-size: 0.88em;
+}
+
+/* ── Preview hover highlight ── */
+[data-src-line] { position: relative; }
+
+[data-src-line].preview-line-hl {
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent) !important;
+  border-radius: 4px;
+  outline: 1px solid color-mix(in srgb, var(--color-accent) 18%, transparent);
+  outline-offset: 3px;
+}
+
+.preview-goto-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-weight: 500;
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: 0 4px 0 4px;
+  cursor: pointer;
+  z-index: 20;
+  white-space: nowrap;
+  opacity: 0.88;
+  transition: opacity 0.1s;
+}
+
+.preview-goto-btn:hover { opacity: 1; }
+
+/* ── Highlight ==text== ── */
+#preview mark {
+  background: #fef08a;
+  color: #713f12;
+  padding: 1px 3px;
+  border-radius: 3px;
+  font-style: normal;
+}
+
+[data-theme="dark"] #preview mark {
+  background: rgba(254, 240, 138, 0.18);
+  color: #fde68a;
 }
