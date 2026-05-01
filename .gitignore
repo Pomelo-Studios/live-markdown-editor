@@ -9,3 +9,4 @@ package-lock.json
 .next/
 .superpowers/
 .worktrees/
+.vercel
