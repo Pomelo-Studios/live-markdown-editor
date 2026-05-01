@@ -1,29 +1,90 @@
 // src/pdfExport.js
-const exportBtn = document.getElementById('pdf-export-btn')
+import { marked }           from 'marked'
+import { getPdfMake }       from './pdf/loader.js'
+import { readPdfStyles }    from './pdf/styleReader.js'
+import { renderTokens }     from './pdf/blockRenderer.js'
+
+const exportBtn   = document.getElementById('pdf-export-btn')
 const previewPane = document.getElementById('preview-pane')
-const preview = document.getElementById('preview')
+const preview     = document.getElementById('preview')
 
 let pdfBlobUrl = null
-let pdfIframe = null
+let pdfIframe  = null
 
-function getHtml2Pdf() {
-  return new Promise((resolve) => {
-    if (window.html2pdf) { resolve(window.html2pdf); return }
-    const script = document.createElement('script')
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
-    script.onload = () => resolve(window.html2pdf)
-    document.head.appendChild(script)
-  })
+// ── Filename from first H1 ─────────────────────────────────────────────────
+function getPdfFilename() {
+  const val   = document.getElementById('editor')?.value || ''
+  const match = val.match(/^#\s+(.+)/m)
+  if (!match) return 'document.pdf'
+  return match[1]
+    .replace(/[^\w\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .toLowerCase()
+    .slice(0, 60) + '.pdf'
 }
 
+// ── Build pdfmake docDefinition ────────────────────────────────────────────
+function buildDocDefinition(markdown, styles, hasFiraCode = false) {
+  const isDark        = document.documentElement.getAttribute('data-theme') === 'dark'
+  const tokens        = marked.lexer(markdown)
+  const stylesWithFont = { ...styles, hasFiraCode }
+  const content       = renderTokens(tokens, stylesWithFont, isDark)
+
+  const fonts = {
+    Roboto: {
+      normal:      'Roboto-Regular.ttf',
+      bold:        'Roboto-Medium.ttf',
+      italics:     'Roboto-Italic.ttf',
+      bolditalics: 'Roboto-MediumItalic.ttf',
+    },
+  }
+  if (hasFiraCode) {
+    fonts.FiraCode = {
+      normal:      'FiraCode-Regular.ttf',
+      bold:        'FiraCode-Regular.ttf',
+      italics:     'FiraCode-Regular.ttf',
+      bolditalics: 'FiraCode-Regular.ttf',
+    }
+  }
+
+  const docDef = {
+    content,
+    pageSize:    'A4',
+    pageMargins: styles.pageMargins,
+    defaultStyle: {
+      font:       'Roboto',
+      fontSize:   styles.body.fontSize,
+      color:      styles.body.color,
+      lineHeight: 1.4,
+    },
+    fonts,
+  }
+
+  // Background color (only set if non-white to keep file size smaller)
+  if (styles.bgColor && styles.bgColor !== '#ffffff') {
+    docDef.background = () => ({
+      canvas: [{
+        type:      'rect',
+        x: 0, y: 0,
+        w: 595.28, h: 841.89,
+        color:     styles.bgColor,
+      }],
+    })
+  }
+
+  return docDef
+}
+
+// ── PDF mode UI ────────────────────────────────────────────────────────────
 function enterPdfMode() {
-  exportBtn.textContent = '⬇ İndir'
+  exportBtn.textContent = '⬇ Download'
   exportBtn.removeEventListener('click', startExport)
   exportBtn.addEventListener('click', downloadPdf, { once: true })
 
   const closeBtn = document.createElement('button')
   closeBtn.id = 'pdf-close-btn'
-  closeBtn.textContent = '✕ Kapat'
+  closeBtn.textContent = '✕ Close'
   exportBtn.insertAdjacentElement('afterend', closeBtn)
   closeBtn.addEventListener('click', exitPdfMode, { once: true })
 
@@ -36,42 +97,43 @@ function enterPdfMode() {
 
 function exitPdfMode() {
   exportBtn.textContent = 'PDF Export'
+  exportBtn.removeEventListener('click', downloadPdf)
   exportBtn.addEventListener('click', startExport)
-
-  const closeBtn = document.getElementById('pdf-close-btn')
-  if (closeBtn) closeBtn.remove()
-
+  document.getElementById('pdf-close-btn')?.remove()
   if (pdfIframe) { pdfIframe.remove(); pdfIframe = null }
   if (pdfBlobUrl) { URL.revokeObjectURL(pdfBlobUrl); pdfBlobUrl = null }
-
   preview.style.display = ''
 }
 
 async function downloadPdf() {
   const link = document.createElement('a')
-  link.href = pdfBlobUrl
-  link.download = 'document.pdf'
+  link.href     = pdfBlobUrl
+  link.download = getPdfFilename()
   link.click()
 }
 
+// ── Export ─────────────────────────────────────────────────────────────────
 async function startExport() {
   exportBtn.textContent = '...'
-  exportBtn.disabled = true
+  exportBtn.disabled    = true
 
-  const html2pdfLib = await getHtml2Pdf()
-  const opt = {
-    margin: 0,
-    filename: 'document.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+  try {
+    const pdfMakeLib  = await getPdfMake()
+    const hasFiraCode = !!pdfMakeLib._firaCodeLoaded
+    const markdown    = document.getElementById('editor').value
+    const styles      = readPdfStyles()
+    const docDef      = buildDocDefinition(markdown, styles, hasFiraCode)
+
+    pdfMakeLib.createPdf(docDef).getBlob((blob) => {
+      pdfBlobUrl            = URL.createObjectURL(blob)
+      exportBtn.disabled    = false
+      enterPdfMode()
+    })
+  } catch (err) {
+    console.error('PDF export failed:', err)
+    exportBtn.textContent = 'PDF Export'
+    exportBtn.disabled    = false
   }
-
-  const pdfBlob = await html2pdfLib().set(opt).from(preview).outputPdf('blob')
-  pdfBlobUrl = URL.createObjectURL(pdfBlob)
-
-  exportBtn.disabled = false
-  enterPdfMode()
 }
 
 export function initPdfExport() {
