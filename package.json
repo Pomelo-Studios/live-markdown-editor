@@ -1,6 +1,6 @@
 {
   "name": "live-markdown-editor",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Free, open-source, browser-based live markdown editor",
   "main": "index.js",
   "directories": {
