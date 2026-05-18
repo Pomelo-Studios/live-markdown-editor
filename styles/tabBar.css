@@ -1,0 +1,185 @@
+/* styles/tabBar.css */
+
+.tab-bar {
+  display: flex;
+  align-items: center;
+  background: var(--bg-toolbar);
+  border-bottom: 1px solid var(--border-color);
+  height: 36px;
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.tab-bar__tabs {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+  align-items: stretch;
+}
+
+.tab-bar__actions {
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.tab-bar__btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--color-toolbar-text);
+  cursor: pointer;
+  font-size: 14px;
+  height: 26px;
+  min-width: 26px;
+  padding: 0 6px;
+  transition: background 0.1s;
+}
+
+.tab-bar__btn:hover {
+  background: var(--blockquote-bg);
+  border-color: var(--border-color);
+}
+
+.tab-bar__btn--hidden {
+  display: none;
+}
+
+/* Individual tab */
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border-color);
+  color: var(--color-toolbar-text);
+  cursor: pointer;
+  font-size: 13px;
+  height: 100%;
+  max-width: 180px;
+  min-width: 80px;
+  padding: 0 8px;
+  flex-shrink: 0;
+  position: relative;
+  transition: background 0.1s;
+}
+
+.tab:hover {
+  background: var(--blockquote-bg);
+}
+
+.tab--active {
+  background: var(--bg);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tab__title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  outline: none;
+}
+
+.tab__close {
+  opacity: 0;
+  font-size: 11px;
+  flex-shrink: 0;
+  transition: opacity 0.1s;
+  border-radius: 3px;
+  padding: 1px 2px;
+}
+
+.tab:hover .tab__close,
+.tab[aria-selected="true"] .tab__close {
+  opacity: 1;
+}
+
+.tab__close:hover {
+  background: var(--border-color);
+}
+
+/* Drag visuals */
+
+.tab--dragging {
+  opacity: 0.5;
+}
+
+.tab--drop-before::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  background: var(--blockquote-border);
+  border-radius: 2px;
+}
+
+.tab--drop-after::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  background: var(--blockquote-border);
+  border-radius: 2px;
+}
+
+/* Overflow dropdown */
+
+.tab-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--bg-toolbar);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  box-shadow: var(--shadow-sm);
+  min-width: 180px;
+  max-height: 320px;
+  overflow-y: auto;
+  z-index: 50;
+}
+
+.tab-menu__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--color-toolbar-text);
+  padding: 6px 10px;
+  transition: background 0.1s;
+}
+
+.tab-menu__item:hover {
+  background: var(--blockquote-bg);
+}
+
+.tab-menu__item--active {
+  background: var(--blockquote-bg);
+  font-weight: 600;
+}
+
+.tab-menu__close {
+  opacity: 0.5;
+  font-size: 11px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.tab-menu__close:hover {
+  opacity: 1;
+  background: var(--border-color);
+}

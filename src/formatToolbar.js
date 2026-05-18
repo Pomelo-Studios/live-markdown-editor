@@ -1,6 +1,7 @@
 // src/formatToolbar.js
 import { debounce } from './utils/debounce.js'
 import { slugify } from './utils/slugify.js'
+import { getActiveTab } from './tabManager.js'
 
 // ── Undo / Redo stack ──────────────────────────────────────────────────────────
 
@@ -506,10 +507,11 @@ export function initFormatToolbar() {
 
   // ── Download MD ──
   document.getElementById('md-download-btn')?.addEventListener('click', () => {
-    const match = textarea.value.match(/^#\s+(.+)/m)
-    const base = match
-      ? match[1].replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-').toLowerCase().slice(0, 60)
-      : 'document'
+    const title = getActiveTab().title
+    const base = (title || 'document')
+      .replace(/[/\\:\n\r]/g, '-')
+      .trim()
+      .slice(0, 60) || 'untitled'
     const blob = new Blob([textarea.value], { type: 'text/markdown' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')

@@ -7,6 +7,7 @@
 @media (max-width: 768px) {
   #sidebar { display: none !important; }
   #resizer { display: none !important; }
+  #tab-bar { display: none; }
 
   body { overflow: hidden; }
 
