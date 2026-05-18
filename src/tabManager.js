@@ -117,7 +117,11 @@ function _freshState() {
 function _loadState() {
   try {
     const saved = storageGet(STORAGE_KEY)
-    if (saved && Array.isArray(saved.tabs) && saved.tabs.length > 0) return saved
+    if (saved && Array.isArray(saved.tabs) && saved.tabs.length > 0) {
+      const ids = new Set(saved.tabs.map((t) => t.id))
+      if (!ids.has(saved.activeTabId)) saved.activeTabId = saved.tabs[0].id
+      return saved
+    }
   } catch (_) { /* fall through */ }
 
   const legacy = storageGet(LEGACY_KEY)
