@@ -141,6 +141,7 @@ export function initTabManager({ onActiveTabChange }) {
   _onActiveTabChange = onActiveTabChange
   _state = _loadState()
   _render()
+  _setupTabEvents()
   _setupNewTabButton()
   _setupMenuButton()
   _setupResizeObserver()
@@ -270,7 +271,6 @@ function _render() {
   }
 
   _updateOverflowChevron()
-  _setupTabEvents()
 }
 
 function _updateTabTitleInDom(id, title) {

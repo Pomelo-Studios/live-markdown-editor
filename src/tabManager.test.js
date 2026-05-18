@@ -242,4 +242,27 @@ describe('tabManager', () => {
     tabManager.closeTab(id)
     expect(cb).toHaveBeenCalledOnce()
   })
+
+  // ── Listener accumulation ─────────────────────────────────
+
+  it('tab container addEventListener called at most once per event type across multiple tab mutations', () => {
+    const container = document.getElementById('tab-bar-tabs')
+    const callCounts = {}
+    const original = container.addEventListener.bind(container)
+    container.addEventListener = vi.fn((type, ...args) => {
+      callCounts[type] = (callCounts[type] || 0) + 1
+      original(type, ...args)
+    })
+
+    tabManager.initTabManager({ onActiveTabChange: vi.fn() })
+    tabManager.createTab()
+    tabManager.createTab()
+    const id = tabManager.getActiveTab().id
+    tabManager.closeTab(id)
+    tabManager.switchTab(tabManager.getActiveTab().id)
+
+    for (const [type, count] of Object.entries(callCounts)) {
+      expect(count, `event type "${type}" should be registered at most once`).toBeLessThanOrEqual(1)
+    }
+  })
 })
