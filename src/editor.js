@@ -1,6 +1,4 @@
 // src/editor.js
-import { debounce } from './utils/debounce.js'
-
 let _textarea = null
 
 /**
