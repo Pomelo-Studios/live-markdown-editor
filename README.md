@@ -5,13 +5,14 @@ A free, open-source, browser-based live markdown editor with real-time preview a
 ## Features
 
 - **Split pane** — markdown on the left, rendered preview on the right
+- **Multi-tab editing** — open multiple markdown documents simultaneously, switch between them via the tab bar, rename by double-clicking, drag to reorder, overflow dropdown when many tabs are open. Desktop only (mobile coming in a later phase).
 - **Resizable divider** — drag to adjust pane widths
 - **Style panel** — customize font sizes and colors per heading level (H1–H4), body text, margins, and code block background
 - **Code block indent grid** — toggle vertical guide lines in code blocks
 - **Syntax highlighting** — powered by highlight.js
 - **Dark / Light theme** — follows system preference, manually toggleable
 - **PDF export** — inline preview before downloading
-- **localStorage persistence** — content and settings survive page refresh
+- **localStorage persistence** — open tabs, content, and settings survive page refresh
 - **Mobile friendly** — bottom tab bar for Edit / Preview / Style on small screens
 
 ## Getting Started
