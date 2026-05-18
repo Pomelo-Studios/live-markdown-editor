@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/styles/sidebar.css" />
   <link rel="stylesheet" href="/styles/mobile.css" />
   <link rel="stylesheet" href="/styles/formatToolbar.css" />
+  <link rel="stylesheet" href="/styles/tabBar.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" id="hljs-theme" />
 </head>
 <body>
@@ -309,6 +310,17 @@
           <button id="theme-toggle" aria-label="Toggle theme">🌙</button>
         </div>
       </header>
+
+      <!-- Tab bar -->
+      <div id="tab-bar" class="tab-bar" role="tablist">
+        <div class="tab-bar__tabs" id="tab-bar-tabs"></div>
+        <div class="tab-bar__actions">
+          <button id="tab-new-btn" class="tab-bar__btn" aria-label="New tab">+</button>
+          <button id="tab-menu-btn" class="tab-bar__btn tab-bar__btn--hidden"
+                  aria-label="All tabs" aria-haspopup="menu">&#9662;</button>
+        </div>
+        <div id="tab-menu" class="tab-menu" role="menu" hidden></div>
+      </div>
 
       <!-- Editor / Preview split -->
       <div id="split">
