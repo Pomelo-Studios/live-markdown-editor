@@ -314,6 +314,7 @@ function _setupTabEvents() {
 }
 
 function _startRename(tabBtn, titleSpan) {
+  if (titleSpan.contentEditable === 'true') return
   const id = tabBtn.dataset.tabId
   const original = titleSpan.textContent
   titleSpan.contentEditable = 'true'

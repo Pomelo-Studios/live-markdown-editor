@@ -243,6 +243,36 @@ describe('tabManager', () => {
     expect(cb).toHaveBeenCalledOnce()
   })
 
+  // ── _startRename double-invocation guard ──────────────────
+
+  it('dblclick on already-renaming span does not register a duplicate blur listener', () => {
+    tabManager.initTabManager({ onActiveTabChange: vi.fn() })
+    const container = document.getElementById('tab-bar-tabs')
+    const tabBtn = container.querySelector('.tab')
+    const titleSpan = tabBtn.querySelector('.tab__title')
+
+    const blurCalls = { count: 0 }
+    const origAddEventListener = titleSpan.addEventListener.bind(titleSpan)
+    titleSpan.addEventListener = vi.fn((type, ...args) => {
+      if (type === 'blur') blurCalls.count++
+      origAddEventListener(type, ...args)
+    })
+
+    // Simulate dblclick twice on the same span
+    tabBtn.dataset.tabId = tabManager.getActiveTab().id
+    // Access _startRename indirectly by firing dblclick events
+    const dblclick1 = new Event('dblclick', { bubbles: true })
+    Object.defineProperty(dblclick1, 'target', { value: titleSpan })
+    titleSpan.dispatchEvent(dblclick1)
+
+    const dblclick2 = new Event('dblclick', { bubbles: true })
+    Object.defineProperty(dblclick2, 'target', { value: titleSpan })
+    titleSpan.dispatchEvent(dblclick2)
+
+    // Only one blur listener should have been registered across both calls
+    expect(blurCalls.count).toBe(1)
+  })
+
   // ── Listener accumulation ─────────────────────────────────
 
   it('tab container addEventListener called at most once per event type across multiple tab mutations', () => {
