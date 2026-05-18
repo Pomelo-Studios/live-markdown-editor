@@ -100,6 +100,7 @@ function _newId() {
 
 let _state = null
 let _onActiveTabChange = null
+let _menuAbortController = null
 
 const _persistNow = () => storageSet(STORAGE_KEY, _state)
 const _persist = debounce(_persistNow, 500)
@@ -411,8 +412,12 @@ function _setupMenuButton() {
     if (!menu.hidden) _renderMenu()
   })
 
-  document.addEventListener('click', () => { if (menu) menu.hidden = true })
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu) menu.hidden = true })
+  if (_menuAbortController) _menuAbortController.abort()
+  _menuAbortController = new AbortController()
+  const { signal } = _menuAbortController
+
+  document.addEventListener('click', () => { if (menu) menu.hidden = true }, { signal })
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu) menu.hidden = true }, { signal })
 }
 
 function _renderMenu() {

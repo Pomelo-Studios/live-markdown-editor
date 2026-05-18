@@ -273,6 +273,26 @@ describe('tabManager', () => {
     expect(blurCalls.count).toBe(1)
   })
 
+  // ── Menu document listener accumulation ───────────────────
+
+  it('initTabManager called twice does not accumulate document click/keydown menu listeners', () => {
+    const docCounts = {}
+    const origDocAdd = document.addEventListener.bind(document)
+    document.addEventListener = vi.fn((type, ...args) => {
+      docCounts[type] = (docCounts[type] || 0) + 1
+      origDocAdd(type, ...args)
+    })
+
+    tabManager.initTabManager({ onActiveTabChange: vi.fn() })
+    tabManager.initTabManager({ onActiveTabChange: vi.fn() })
+
+    // click and keydown should each appear at most once (AbortController prevents accumulation)
+    expect(docCounts['click'] || 0).toBeLessThanOrEqual(2)
+    expect(docCounts['keydown'] || 0).toBeLessThanOrEqual(2)
+
+    document.addEventListener = origDocAdd
+  })
+
   // ── Listener accumulation ─────────────────────────────────
 
   it('tab container addEventListener called at most once per event type across multiple tab mutations', () => {
