@@ -15,3 +15,7 @@ export function storageSet(key, value) {
     // Quota exceeded or private mode — silently ignore
   }
 }
+
+export function storageRemove(key) {
+  try { localStorage.removeItem(key) } catch { /* ignore */ }
+}

@@ -1,5 +1,5 @@
 // src/tabManager.js
-import { storageGet, storageSet } from './utils/storage.js'
+import { storageGet, storageSet, storageRemove } from './utils/storage.js'
 import { debounce } from './utils/debounce.js'
 import { autoTitle } from './utils/autoTitle.js'
 
@@ -133,7 +133,7 @@ function _loadState() {
       activeTabId: id,
       tabs: [{ id, title: autoTitle(content), customTitle: false, content, updatedAt: Date.now() }],
     }
-    try { localStorage.removeItem(LEGACY_KEY) } catch (_) { /* ignore */ }
+    storageRemove(LEGACY_KEY)
     return state
   }
 
