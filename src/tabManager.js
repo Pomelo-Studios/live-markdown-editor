@@ -101,6 +101,7 @@ function _newId() {
 let _state = null
 let _onActiveTabChange = null
 let _menuAbortController = null
+let _resizeObserver = null
 
 const _persistNow = () => storageSet(STORAGE_KEY, _state)
 const _persist = debounce(_persistNow, 500)
@@ -462,8 +463,9 @@ function _renderMenu() {
 function _setupResizeObserver() {
   const tabs = document.getElementById('tab-bar-tabs')
   if (!tabs || typeof ResizeObserver === 'undefined') return
-  const observer = new ResizeObserver(() => _updateOverflowChevron())
-  observer.observe(tabs)
+  if (_resizeObserver) _resizeObserver.disconnect()
+  _resizeObserver = new ResizeObserver(() => _updateOverflowChevron())
+  _resizeObserver.observe(tabs)
 }
 
 function _focusEditor() {
