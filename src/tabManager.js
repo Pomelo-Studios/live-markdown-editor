@@ -347,12 +347,16 @@ function _startRename(tabBtn, titleSpan) {
     titleSpan.textContent = original
   }
 
-  titleSpan.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); commit() }
-    if (e.key === 'Escape') { cancel() }
-  })
+  const ac = new AbortController()
+  const _commit = () => { commit(); ac.abort() }
+  const _cancel = () => { cancel(); ac.abort() }
 
-  titleSpan.addEventListener('blur', commit, { once: true })
+  titleSpan.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); _commit() }
+    if (e.key === 'Escape') { _cancel() }
+  }, { signal: ac.signal })
+
+  titleSpan.addEventListener('blur', _commit, { once: true, signal: ac.signal })
 }
 
 function _setupDragHandlers(container) {
